@@ -1,0 +1,15 @@
+# examples/basic_features.yaml
+feature_a:
+  description: "Raw feature A"
+  data_type: "float"
+
+feature_b:
+  description: "Raw feature B"
+  data_type: "float"
+
+feature_c:
+  description: "Derived feature C"
+  dependencies: ["feature_a", "feature_b"]
+  transformation: "scale_feature"
+  params:
+    factor: 0.5
