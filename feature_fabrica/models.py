@@ -8,8 +8,7 @@ class FeatureSpec(BaseModel):
     description: str
     data_type: str
     dependencies: list[str] | None = Field(default_factory=list)
-    transformation: str | None = None
-    params: dict | None = Field(default_factory=dict)
+    transformation: dict | None = Field(default_factory=dict)
 
     @validator("data_type")
     def validate_data_type(cls, v):
@@ -19,16 +18,6 @@ class FeatureSpec(BaseModel):
                 raise ValueError(f"Invalid data_type specified: {v}")
         except Exception as e:
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
-        return v
-
-    @validator("transformation")
-    def validate_transformation(cls, v):
-        allowed_transformations = {
-            "scale_feature",
-            "log_transform",
-        }  # Add more as needed
-        if v and v not in allowed_transformations:
-            raise ValueError(f"Transformation '{v}' is not supported")
         return v
 
 

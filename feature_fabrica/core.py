@@ -1,7 +1,8 @@
 # core.py
 from .models import FeatureSpec, FeatureValue
 from .yaml_parser import load_yaml, validate_feature_spec
-from .transform import scale_feature
+from collections.abc import Iterable
+import inspect
 
 
 class Feature:
@@ -12,26 +13,37 @@ class Feature:
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
         self.transformation = self.spec.transformation
-        self.params = self.spec.params
 
     def compute(self, value, dependencies=None):
-        # If the feature has dependencies, compute them first
-        if dependencies:
-            dependent_values = [d_fv.feature_value.value for d_fv in dependencies]
-        else:
-            dependent_values = []
-
         # Apply the transformation function if specified
         if self.transformation:
-            if self.transformation == "scale_feature":
-                result = scale_feature(
-                    sum(dependent_values), self.params.get("factor", 1)
-                )
-            else:
-                # Handle other transformations if needed
-                result = dependent_values[0] if dependent_values else None
+            result = value
+            for key, params in self.transformation.items():
+                fn = eval(key)
+                fn_input = {}
+                # Get the function signature
+                signature = inspect.signature(fn)
+                if "data" in signature.parameters:
+                    fn_input["data"] = result
+                if params:
+                    for fn_arg, fn_val in params.items():
+                        if isinstance(fn_val, Iterable):
+                            fn_input[fn_arg] = [
+                                dependencies[x].feature_value.value
+                                if x in dependencies.keys()
+                                else x
+                                for x in fn_val
+                            ]
+                        else:
+                            fn_input[fn_arg] = (
+                                dependencies[fn_val].feature_value.value
+                                if fn_val in dependencies.keys()
+                                else fn_val
+                            )
+                result = fn(**fn_input)
+
         else:
-            assert len(dependent_values) == 0
+            assert dependencies is None
             result = value
 
         # Validate the final result with FeatureValue
@@ -75,7 +87,9 @@ class FeatureSet:
             name = feature.name
             results[name] = feature.compute(
                 0,
-                dependencies=[self.features[f_name] for f_name in feature.dependencies],
+                dependencies={
+                    f_name: self.features[f_name] for f_name in feature.dependencies
+                },
             )
 
         return results

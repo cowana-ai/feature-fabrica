@@ -23,7 +23,9 @@ class TestFeatureSet(unittest.TestCase):
         data = {"feature_a": 10.0, "feature_b": 20.0}
         feature_set = FeatureSet("examples/basic_features.yaml")
         results = feature_set.compute_all(data)
-        self.assertEqual(results["feature_c"], 15)  # 0.5 * (10 + 20)
+        self.assertEqual(
+            results["feature_c"], 2.772588722239781
+        )  # log(0.5 * (10 + 20) + 1)
 
 
 if __name__ == "__main__":

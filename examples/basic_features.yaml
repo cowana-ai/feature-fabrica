@@ -11,6 +11,9 @@ feature_c:
   description: "Derived feature C"
   data_type: "float"
   dependencies: ["feature_a", "feature_b"]
-  transformation: "scale_feature"
-  params:
-    factor: 0.5
+  transformation:
+    sum_fn:
+      iterable: ["feature_a", "feature_b"]
+    scale_feature:
+      factor: 0.5
+    log_transform:
