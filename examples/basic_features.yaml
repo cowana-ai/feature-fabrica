@@ -9,6 +9,7 @@ feature_b:
 
 feature_c:
   description: "Derived feature C"
+  data_type: "float"
   dependencies: ["feature_a", "feature_b"]
   transformation: "scale_feature"
   params:
