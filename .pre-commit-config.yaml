@@ -1,0 +1,105 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-toml
+      - id: check-yaml
+      - id: check-docstring-first
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-executables-have-shebangs
+      - id: debug-statements
+      - id: detect-private-key
+      - id: check-case-conflict
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix, --show-fixes]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        exclude: "training" # TODO: Training is ported from untyped perestroika repo. Ignoring type check for now.
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
+    hooks:
+      - id: pyupgrade
+        args: [--py311-plus]
+        # typer and kfp type check conflict with "pep 604 typing rewrites".
+        exclude: "training|^src/python/data_pipeline/" # TODO: Training is ported from untyped perestroika repo. Ignoring type check for now.
+
+  - repo: https://github.com/myint/docformatter
+    rev: v1.7.5
+    hooks:
+      - id: docformatter
+        args: [--in-place, --wrap-summaries=120, --wrap-descriptions=120]
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types: [yaml]
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+        args: ["--number"]
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-tables
+          - mdformat_frontmatter
+          - mdformat-toc
+          - mdformat-black
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.0
+    hooks:
+      - id: actionlint-docker
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.8.0
+    hooks:
+      - id: poetry-check
+        args: ["-C", "./src"]
+      - id: poetry-install
+        args: ["-C", "./src"]
+
+  - repo: local
+    hooks:
+      - id: dbt-deps
+        name: dbt-deps
+        entry: sh -c 'cd src/dbt/data_pipeline/ && poetry install && poetry run dbt deps'
+        language: python
+        language_version: python3.11
+        additional_dependencies: ["poetry"]
+        pass_filenames: false
+        files: ^src/dbt/data_pipeline/
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.0.6
+    hooks:
+      - id: sqlfluff-lint
+        additional_dependencies: [dbt-bigquery==1.7.8, sqlfluff-templater-dbt]
+        files: ^src/dbt/data_pipeline/
+      - id: sqlfluff-fix
+        additional_dependencies: [dbt-bigquery==1.7.8, sqlfluff-templater-dbt]
+        files: ^src/dbt/data_pipeline/
