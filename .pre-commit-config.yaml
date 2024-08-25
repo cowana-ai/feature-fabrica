@@ -26,15 +26,12 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy
-        exclude: "training" # TODO: Training is ported from untyped perestroika repo. Ignoring type check for now.
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.2
     hooks:
       - id: pyupgrade
         args: [--py311-plus]
-        # typer and kfp type check conflict with "pep 604 typing rewrites".
-        exclude: "training|^src/python/data_pipeline/" # TODO: Training is ported from untyped perestroika repo. Ignoring type check for now.
 
   - repo: https://github.com/myint/docformatter
     rev: v1.7.5
@@ -82,24 +79,3 @@ repos:
         args: ["-C", "./src"]
       - id: poetry-install
         args: ["-C", "./src"]
-
-  - repo: local
-    hooks:
-      - id: dbt-deps
-        name: dbt-deps
-        entry: sh -c 'cd src/dbt/data_pipeline/ && poetry install && poetry run dbt deps'
-        language: python
-        language_version: python3.11
-        additional_dependencies: ["poetry"]
-        pass_filenames: false
-        files: ^src/dbt/data_pipeline/
-
-  - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.0.6
-    hooks:
-      - id: sqlfluff-lint
-        additional_dependencies: [dbt-bigquery==1.7.8, sqlfluff-templater-dbt]
-        files: ^src/dbt/data_pipeline/
-      - id: sqlfluff-fix
-        additional_dependencies: [dbt-bigquery==1.7.8, sqlfluff-templater-dbt]
-        files: ^src/dbt/data_pipeline/
