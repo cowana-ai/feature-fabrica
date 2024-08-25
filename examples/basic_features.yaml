@@ -7,6 +7,14 @@ feature_b:
   description: "Raw feature B"
   data_type: "float"
 
+feature_d:
+  description: "Derived feature D"
+  data_type: "float"
+  dependencies: ["feature_c", "feature_a"]
+  transformation:
+    sum_fn:
+      iterable: ["feature_a", "feature_c"]
+
 feature_c:
   description: "Derived feature C"
   data_type: "float"

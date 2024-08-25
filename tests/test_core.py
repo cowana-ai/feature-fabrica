@@ -16,12 +16,14 @@ class TestFeatureSet(unittest.TestCase):
             "feature_b": 20,
         }  # Expecting float, got str
         feature_set = FeatureSet("examples/basic_features.yaml")
+        feature_set.compile()
         with self.assertRaises(ValidationError):
             feature_set.compute_all(data)
 
     def test_compute_all(self):
         data = {"feature_a": 10.0, "feature_b": 20.0}
         feature_set = FeatureSet("examples/basic_features.yaml")
+        feature_set.compile()
         results = feature_set.compute_all(data)
         self.assertEqual(
             results["feature_c"], 2.772588722239781
