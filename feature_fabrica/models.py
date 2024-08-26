@@ -15,7 +15,9 @@ class FeatureSpec(BaseModel):
         try:
             # Check if the data_type is a valid Python type
             if v not in dir(builtins):
-                raise ValueError(f"Invalid data_type specified: {v}")
+                raise ValueError(
+                    f"Invalid data_type specified: {v}, it should be in builtins"
+                )
         except Exception as e:
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
         return v
