@@ -4,6 +4,7 @@ from .yaml_parser import load_yaml, validate_feature_spec
 from collections import defaultdict
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
+from graphviz import Digraph
 
 
 class Feature:
@@ -75,6 +76,22 @@ class FeatureSet:
         for feature in dependent_features_sorted:
             self.queue.append(feature)
             visited[feature.name] = 1
+
+    def plot_dependencies(self, output_file: str = "feature_dependencies"):
+        dot = Digraph(comment="Feature Dependencies")
+
+        # Add nodes
+        for feature in self.features.values():
+            dot.node(feature.name)
+
+        # Add edges
+        for feature in self.features.values():
+            for dependency in feature.dependencies:
+                dot.edge(dependency, feature.name)
+
+        # Save and render the graph
+        dot.render(output_file, format="png")
+        print(f"Dependencies graph saved as {output_file}.png")
 
     def compute_all(self, data):
         results = {}
