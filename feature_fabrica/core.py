@@ -77,7 +77,9 @@ class FeatureSet:
             self.queue.append(feature)
             visited[feature.name] = 1
 
-    def plot_dependencies(self, output_file: str = "feature_dependencies"):
+    def get_visual_dependency_graph(
+        self, save_plot: bool = False, output_file: str = "feature_dependencies"
+    ):
         dot = Digraph(comment="Feature Dependencies")
 
         # Add nodes
@@ -89,9 +91,11 @@ class FeatureSet:
             for dependency in feature.dependencies:
                 dot.edge(dependency, feature.name)
 
-        # Save and render the graph
-        dot.render(output_file, format="png")
-        print(f"Dependencies graph saved as {output_file}.png")
+        if save_plot:
+            # Save and render the graph
+            dot.render(output_file, format="png")
+            print(f"Dependencies graph saved as {output_file}.png")
+        return dot
 
     def compute_all(self, data):
         results = {}

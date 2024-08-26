@@ -101,7 +101,7 @@ from feature_fabrica.core import FeatureSet
 
 feature_set = FeatureSet(config_path="../examples", config_name="basic_features")
 feature_set.compile()
-feature_set.plot_dependencies()
+feature_set.get_visual_dependency_graph()
 ```
 
 ![image.png](media/example.png)
