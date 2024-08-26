@@ -52,13 +52,11 @@ feature_c:
   dependencies: ["feature_a", "feature_b"]
   transformation:
     sum_fn:
-      _target_: feature_fabrica.transformations.sum_fn
+      _target_: feature_fabrica.transform.SumFn
       iterable: ["feature_a", "feature_b"]
     scale_feature:
-      _target_: feature_fabrica.transformations.scale_feature
+      _target_: feature_fabrica.transform.ScaleFeature
       factor: 0.5
-    log_transform:
-      _target_: feature_fabrica.transformations.log_transform
 ```
 
 **Creating and Using Transformations**
