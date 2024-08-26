@@ -31,7 +31,7 @@ class TestFeatureSet(unittest.TestCase):
         )
         feature_set.compile()
         results = feature_set.compute_all(data)
-        self.assertEqual(results["feature_c"], 15.0)  # log(0.5 * (10 + 20) + 1)
+        self.assertEqual(results["feature_c"], 15.0)  # 0.5 * (10 + 20)
 
 
 if __name__ == "__main__":
