@@ -1,16 +1,14 @@
 # mypy: ignore-errors
-import yaml
-from typing import Any
-from pathlib import Path
+from hydra import compose, initialize
+from omegaconf import OmegaConf
+from hydra.core.global_hydra import GlobalHydra
 
 
-def load_yaml(file_path: Path) -> dict[str, Any] | None:
-    with open(file_path) as file:
-        try:
-            return yaml.safe_load(file)
-        except yaml.YAMLError as exc:
-            print(f"Error parsing YAML file: {exc}")
-            return None
+def load_yaml(config_path: str, config_name: str) -> OmegaConf:
+    GlobalHydra.instance().clear()
+    initialize(version_base=None, config_path=config_path)
+    feature_specs = compose(config_name=config_name)
+    return feature_specs
 
 
 def validate_feature_spec(spec):
