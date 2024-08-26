@@ -1,8 +1,0 @@
-// Feature Dependencies
-digraph {
-	feature_a
-	feature_b
-	feature_c
-	feature_a -> feature_c
-	feature_b -> feature_c
-}
