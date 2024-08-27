@@ -98,6 +98,8 @@ print(results.feature_c)  # 0.5 * (10 + 20) = 15.0
 
 ### Visualize Features and Dependencies
 
+Track & trace Transformation Chains
+
 ```python
 from feature_fabrica.core import FeatureManager
 
@@ -110,39 +112,7 @@ feature_manager.features.feature_c.print_transformation_chain()
 # Transformation Chain: (Transformation: sum_fn, Value: 30.0) -> (Transformation: scale_feature, Value: 15.0)
 ```
 
-```yaml
-# examples/basic_features.yaml
-feature_a:
-  description: "Raw feature A"
-  data_type: "float"
-
-feature_b:
-  description: "Raw feature B"
-  data_type: "float"
-
-feature_c:
-  description: "Derived feature C"
-  data_type: "float"
-  dependencies: ["feature_a", "feature_b"]
-  transformation:
-    sum_fn:
-      _target_: feature_fabrica.transform.SumFn
-      iterable: ["feature_a", "feature_b"]
-    scale_feature:
-      _target_: feature_fabrica.transform.ScaleFeature
-      factor: 0.5
-    scale_feature_2:
-      _target_: feature_fabrica.transform.ScaleFeature
-      factor: "0.5"
-
-```
-
-Error case:
-
-```python
-Transformation Chain: (Transformation: sum_fn, Value: 30.0) -> (Transformation: scale_feature, Value: 15.0)
-An error occurred during the transformation scale_feature_2: can't multiply sequence by non-int of type 'float'
-```
+Visualize Dependencies
 
 ```python
 from feature_fabrica.core import FeatureManager
