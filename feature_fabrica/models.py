@@ -1,6 +1,6 @@
 # models.py
 from pydantic import BaseModel, Field, validator, root_validator
-from typing import Any
+from typing import Any, Optional
 import builtins
 
 
@@ -37,3 +37,21 @@ class FeatureValue(BaseModel):
                 f"Value '{v}' does not match data type '{values['data_type']}'"
             )
         return values
+
+
+class TNode(BaseModel):
+    value: Any
+    transformation_name: str
+    next: Optional["TNode"] = None  # Forward reference
+
+    def to_dict(self) -> dict[str, Any]:
+        # Convert the node and its next nodes to a dictionary
+        node_dict = {
+            "value": self.value,
+            "transformation_name": self.transformation_name,
+        }
+        if self.next:
+            node_dict["next"] = self.next.to_dict()
+        else:
+            node_dict["next"] = None
+        return node_dict

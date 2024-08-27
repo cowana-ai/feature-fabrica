@@ -1,5 +1,5 @@
 # core.py
-from .models import FeatureSpec, FeatureValue
+from .models import FeatureSpec, FeatureValue, TNode
 from .yaml_parser import load_yaml
 from collections import defaultdict
 from omegaconf import OmegaConf
@@ -16,17 +16,32 @@ class Feature:
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
         self.transformation = instantiate(self.spec.transformation)
+        self.transformation_chain = TNode(
+            **{"value": None, "transformation_name": "head"}
+        )
+        self.transformation_ptr = self.transformation_chain
 
     def compute(self, value, dependencies=None):
         # Apply the transformation function if specified
         if self.transformation:
-            result = value
-            for key, transformation_obj in self.transformation.items():
-                expects_data = transformation_obj.compile(dependencies)
-                if expects_data:
-                    result = transformation_obj.execute(result)
-                else:
-                    result = transformation_obj.execute()
+            try:
+                result = value
+                for key, transformation_obj in self.transformation.items():
+                    expects_data = transformation_obj.compile(dependencies)
+                    if expects_data:
+                        result = transformation_obj.execute(result)
+                    else:
+                        result = transformation_obj.execute()
+
+                    transformation_node = TNode(
+                        **{"value": result, "transformation_name": key}
+                    )
+                    self.transformation_ptr.next = transformation_node
+                    self.transformation_ptr = transformation_node
+            except Exception as e:
+                self.print_transformation_chain()
+                print(f"An error occurred during the transformation {key}: {e}")
+                raise
 
         else:
             assert dependencies is None
@@ -35,6 +50,16 @@ class Feature:
         # Validate the final result with FeatureValue
         self.feature_value = FeatureValue(value=result, data_type=self.spec.data_type)
         return self.feature_value.value
+
+    def print_transformation_chain(self):
+        current = self.transformation_chain.next
+        chain_list = []
+        while current:
+            chain_list.append(
+                f"(Transformation: {current.transformation_name}, Value: {current.value})"
+            )
+            current = current.next
+        print("Transformation Chain: " + " -> ".join(chain_list))
 
 
 class FeatureManager:
