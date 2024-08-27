@@ -20,7 +20,6 @@ class TestFeatureSet(unittest.TestCase):
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
         )
-        feature_manager.compile()
         with self.assertRaises(ValidationError):
             feature_manager.compute_all(data)
 
@@ -29,7 +28,6 @@ class TestFeatureSet(unittest.TestCase):
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
         )
-        feature_manager.compile()
         results = feature_manager.compute_all(data)
         self.assertEqual(results["feature_c"], 15.0)  # 0.5 * (10 + 20)
         self.assertEqual(results.feature_c, 15.0)  # 0.5 * (10 + 20)

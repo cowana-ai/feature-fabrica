@@ -1,6 +1,6 @@
 # core.py
 from .models import FeatureSpec, FeatureValue
-from .yaml_parser import load_yaml, validate_feature_spec
+from .yaml_parser import load_yaml
 from collections import defaultdict
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
@@ -45,14 +45,14 @@ class FeatureManager:
 
         self.independent_features: list[Feature] = []
         self.dependent_features: list[Feature] = []
+        self.queue: list[Feature] = []
 
         self.features: edict = self._build_features()
-        self.queue: list[Feature] = []
+        self.compile()
 
     def _build_features(self) -> edict:
         features = {}
         for name, spec in self.feature_specs.items():
-            validate_feature_spec(spec)
             feature = Feature(name, spec)
 
             if not feature.dependencies:

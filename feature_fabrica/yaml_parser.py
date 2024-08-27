@@ -9,8 +9,3 @@ def load_yaml(config_path: str, config_name: str) -> OmegaConf:
     initialize(version_base=None, config_path=config_path)
     feature_specs = compose(config_name=config_name)
     return feature_specs
-
-
-def validate_feature_spec(spec):
-    # Add validation logic here (e.g., check required fields)
-    pass

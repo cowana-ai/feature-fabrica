@@ -91,7 +91,6 @@ data = {"feature_a": 10.0, "feature_b": 20.0}
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
-feature_manager.compile()
 results = feature_manager.compute_all(data)
 print(results["feature_c"])  # 0.5 * (10 + 20) = 15.0
 print(results.feature_c)  # 0.5 * (10 + 20) = 15.0
@@ -105,7 +104,6 @@ from feature_fabrica.core import FeatureManager
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
-feature_manager.compile()
 feature_manager.get_visual_dependency_graph()
 ```
 
