@@ -7,6 +7,7 @@ from hydra.utils import instantiate
 from graphviz import Digraph
 from easydict import EasyDict as edict
 from .utils import get_logger
+from typing import Any
 
 logger = get_logger()
 
@@ -131,7 +132,7 @@ class FeatureManager:
             logger.info(f"Dependencies graph saved as {output_file}.png")
         return dot
 
-    def compute_all(self, data) -> edict:
+    def compute_features(self, data: dict[str, Any]) -> edict:
         results = {}
 
         assert len(self.queue) == len(self.features)

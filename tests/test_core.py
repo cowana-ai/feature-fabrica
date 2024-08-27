@@ -21,14 +21,14 @@ class TestFeatureSet(unittest.TestCase):
             config_path="../examples", config_name="basic_features"
         )
         with self.assertRaises(ValidationError):
-            feature_manager.compute_all(data)
+            feature_manager.compute_features(data)
 
     def test_compute_all(self):
         data = {"feature_a": 10.0, "feature_b": 20.0}
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
         )
-        results = feature_manager.compute_all(data)
+        results = feature_manager.compute_features(data)
         self.assertEqual(results["feature_c"], 15.0)  # 0.5 * (10 + 20)
         self.assertEqual(results.feature_c, 15.0)  # 0.5 * (10 + 20)
         self.assertEqual(

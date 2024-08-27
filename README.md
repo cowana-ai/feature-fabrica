@@ -91,7 +91,7 @@ data = {"feature_a": 10.0, "feature_b": 20.0}
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
-results = feature_manager.compute_all(data)
+results = feature_manager.compute_features(data)
 print(results["feature_c"])  # 0.5 * (10 + 20) = 15.0
 print(results.feature_c)  # 0.5 * (10 + 20) = 15.0
 ```
@@ -107,7 +107,7 @@ data = {"feature_a": 10.0, "feature_b": 20.0}
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
-results = feature_manager.compute_all(data)
+results = feature_manager.compute_features(data)
 print(feature_manager.features.feature_c.get_transformation_chain())
 # Transformation Chain: (Transformation: sum_fn, Value: 30.0) -> (Transformation: scale_feature, Value: 15.0)
 ```
