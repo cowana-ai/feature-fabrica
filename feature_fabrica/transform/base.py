@@ -1,10 +1,8 @@
-# transform.py
 from abc import ABC
-from typing import Any
 from collections.abc import Iterable, Mapping
 import inspect
 from loguru import logger
-from .core import Feature
+from ..core import Feature
 
 
 class Transformation(ABC):
@@ -62,21 +60,3 @@ class Transformation(ABC):
     @logger.catch
     def __call__(self, *args):
         return self.execute(*args)
-
-
-class SumFn(Transformation):
-    def __init__(self, iterable: list[Any] | str):
-        super().__init__()
-        self.iterable = iterable
-
-    def execute(self):
-        return sum(self.iterable)
-
-
-class ScaleFeature(Transformation):
-    def __init__(self, factor: float):
-        super().__init__()
-        self.factor = factor
-
-    def execute(self, data: float):
-        return data * self.factor
