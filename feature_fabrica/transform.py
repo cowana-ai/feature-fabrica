@@ -3,6 +3,7 @@ from abc import ABC
 from typing import Any
 from collections.abc import Iterable, Mapping
 import inspect
+from loguru import logger
 from .core import Feature
 
 
@@ -57,6 +58,10 @@ class Transformation(ABC):
 
     def execute(self, *args):
         raise NotImplementedError()
+
+    @logger.catch
+    def __call__(self, *args):
+        return self.execute(*args)
 
 
 class SumFn(Transformation):

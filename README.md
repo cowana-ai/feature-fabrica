@@ -108,7 +108,7 @@ feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
 results = feature_manager.compute_all(data)
-feature_manager.features.feature_c.print_transformation_chain()
+print(feature_manager.features.feature_c.get_transformation_chain())
 # Transformation Chain: (Transformation: sum_fn, Value: 30.0) -> (Transformation: scale_feature, Value: 15.0)
 ```
 

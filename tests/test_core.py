@@ -34,7 +34,6 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(
             feature_manager.features.feature_c.feature_value.value, 15.0
         )  # 0.5 * (10 + 20)
-        feature_manager.features.feature_c.print_transformation_chain()
 
 
 if __name__ == "__main__":

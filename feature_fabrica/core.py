@@ -6,6 +6,9 @@ from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from graphviz import Digraph
 from easydict import EasyDict as edict
+from .utils import get_logger
+
+logger = get_logger()
 
 
 class Feature:
@@ -29,9 +32,9 @@ class Feature:
                 for key, transformation_obj in self.transformation.items():
                     expects_data = transformation_obj.compile(dependencies)
                     if expects_data:
-                        result = transformation_obj.execute(result)
+                        result = transformation_obj(result)
                     else:
-                        result = transformation_obj.execute()
+                        result = transformation_obj()
 
                     transformation_node = TNode(
                         **{"value": result, "transformation_name": key}
@@ -39,8 +42,9 @@ class Feature:
                     self.transformation_ptr.next = transformation_node
                     self.transformation_ptr = transformation_node
             except Exception as e:
-                self.print_transformation_chain()
-                print(f"An error occurred during the transformation {key}: {e}")
+                transformation_chain_str = self.get_transformation_chain()
+                logger.debug(transformation_chain_str)
+                logger.error(f"An error occurred during the transformation {key}: {e}")
                 raise
 
         else:
@@ -51,7 +55,7 @@ class Feature:
         self.feature_value = FeatureValue(value=result, data_type=self.spec.data_type)
         return self.feature_value.value
 
-    def print_transformation_chain(self):
+    def get_transformation_chain(self) -> str:
         current = self.transformation_chain.next
         chain_list = []
         while current:
@@ -59,7 +63,7 @@ class Feature:
                 f"(Transformation: {current.transformation_name}, Value: {current.value})"
             )
             current = current.next
-        print("Transformation Chain: " + " -> ".join(chain_list))
+        return "Transformation Chain: " + " -> ".join(chain_list)
 
 
 class FeatureManager:
@@ -120,7 +124,7 @@ class FeatureManager:
         if save_plot:
             # Save and render the graph
             dot.render(output_file, format="png")
-            print(f"Dependencies graph saved as {output_file}.png")
+            logger.info(f"Dependencies graph saved as {output_file}.png")
         return dot
 
     def compute_all(self, data) -> edict:
