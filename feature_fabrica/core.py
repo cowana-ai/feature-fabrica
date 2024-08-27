@@ -80,6 +80,8 @@ class FeatureManager:
         self.compile()
 
     def _build_features(self) -> edict:
+        logger.info("Building features from feature definition YAML")
+
         features = {}
         for name, spec in self.feature_specs.items():
             feature = Feature(name, spec)
@@ -94,6 +96,8 @@ class FeatureManager:
         return edict(features)
 
     def compile(self):
+        logger.info("Compiling feature dependencies")
+
         visited = defaultdict(int)
         for feature in self.independent_features:
             self.queue.append(feature)
