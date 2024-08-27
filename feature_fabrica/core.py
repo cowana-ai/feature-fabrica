@@ -5,6 +5,7 @@ from collections import defaultdict
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from graphviz import Digraph
+from easydict import EasyDict as edict
 
 
 class Feature:
@@ -36,19 +37,19 @@ class Feature:
         return self.feature_value.value
 
 
-class FeatureSet:
+class FeatureManager:
     def __init__(self, config_path: str, config_name: str):
         self.feature_specs: OmegaConf = load_yaml(
             config_path=config_path, config_name=config_name
         )
 
-        self.independent_features: list[str] = []
-        self.dependent_features: list[str] = []
+        self.independent_features: list[Feature] = []
+        self.dependent_features: list[Feature] = []
 
-        self.features = self._build_features()
-        self.queue: list[str] = []
+        self.features: edict = self._build_features()
+        self.queue: list[Feature] = []
 
-    def _build_features(self):
+    def _build_features(self) -> edict:
         features = {}
         for name, spec in self.feature_specs.items():
             validate_feature_spec(spec)
@@ -61,7 +62,7 @@ class FeatureSet:
 
             features[name] = feature
 
-        return features
+        return edict(features)
 
     def compile(self):
         visited = defaultdict(int)
@@ -97,7 +98,7 @@ class FeatureSet:
             print(f"Dependencies graph saved as {output_file}.png")
         return dot
 
-    def compute_all(self, data):
+    def compute_all(self, data) -> edict:
         results = {}
 
         assert len(self.queue) == len(self.features)
@@ -108,7 +109,7 @@ class FeatureSet:
                 value=data[name] if is_independent else 0,
                 dependencies=None
                 if is_independent
-                else {f_name: self.features[f_name] for f_name in feature.dependencies},
+                else {f_name: self.features[f_name] for f_name in feature.dependencies},  # type: ignore[union-attr]
             )
 
-        return results
+        return edict(results)

@@ -85,23 +85,28 @@ class ScaleFeature(Transformation):
 To compile and execute features:
 
 ```python
-from feature_fabrica.core import FeatureSet
+from feature_fabrica.core import FeatureManager
 
 data = {"feature_a": 10.0, "feature_b": 20.0}
-feature_set = FeatureSet(config_path="../examples", config_name="basic_features")
-feature_set.compile()
-results = feature_set.compute_all(data)
+feature_manager = FeatureManager(
+    config_path="../examples", config_name="basic_features"
+)
+feature_manager.compile()
+results = feature_manager.compute_all(data)
 print(results["feature_c"])  # 0.5 * (10 + 20) = 15.0
+print(results.feature_c)  # 0.5 * (10 + 20) = 15.0
 ```
 
 ### Visualize Features and Dependencies
 
 ```python
-from feature_fabrica.core import FeatureSet
+from feature_fabrica.core import FeatureManager
 
-feature_set = FeatureSet(config_path="../examples", config_name="basic_features")
-feature_set.compile()
-feature_set.get_visual_dependency_graph()
+feature_manager = FeatureManager(
+    config_path="../examples", config_name="basic_features"
+)
+feature_manager.compile()
+feature_manager.get_visual_dependency_graph()
 ```
 
 ![image.png](media/example.png)
