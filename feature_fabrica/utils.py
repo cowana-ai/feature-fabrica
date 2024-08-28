@@ -42,9 +42,10 @@ def get_logger():
 
 
 def verify_dependencies(dependencies_count: dict[str, int]):
+    logger = get_logger()
     if 0 in dependencies_count.values():
         loop_features = [f_name for f_name, c in dependencies_count.items() if c == 0]
-        logger.error(
+        logger.debug(
             f"Cyclic dependency detected! The following features form a cycle: {loop_features}"
         )
         raise CyclicDependencyError(loop_features)
