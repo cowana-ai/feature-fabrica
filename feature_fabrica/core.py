@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from graphviz import Digraph
 from easydict import EasyDict as edict
-from .utils import get_logger
+from .utils import get_logger, verify_dependencies
 from typing import Any
 
 logger = get_logger()
@@ -24,6 +24,8 @@ class Feature:
             **{"value": None, "transformation_name": "head"}
         )
         self.transformation_ptr = self.transformation_chain
+
+        self.computed = False
 
     def compute(self, value, dependencies=None):
         # Apply the transformation function if specified
@@ -54,6 +56,7 @@ class Feature:
 
         # Validate the final result with FeatureValue
         self.feature_value = FeatureValue(value=result, data_type=self.spec.data_type)
+        self.computed = True
         return self.feature_value.value
 
     def get_transformation_chain(self) -> str:
@@ -99,18 +102,71 @@ class FeatureManager:
     def compile(self):
         logger.info("Compiling feature dependencies")
 
+        dependencies_count = defaultdict(int)
         visited = defaultdict(int)
+        # Initialize independent features
         for feature in self.independent_features:
-            self.queue.append(feature)
+            dependencies_count[feature.name] = 1
             visited[feature.name] = 1
-        dependent_features_sorted = sorted(
-            self.dependent_features,
-            key=lambda f: sum(visited[n] for n in f.dependencies),
-            reverse=True,
+
+        # Resolve dependent features
+        for feature in self.dependent_features:
+            if dependencies_count[feature.name] != 0:
+                continue
+
+            cur_feature_depends = [
+                (f_name, dependencies_count[f_name]) for f_name in feature.dependencies
+            ]
+            if 0 not in [x[1] for x in cur_feature_depends]:
+                dependencies_count[feature.name] = sum(
+                    [x[1] for x in cur_feature_depends]
+                )
+            else:
+                # Handle unresolved dependencies using a stack
+                stack = [
+                    f_name
+                    for f_name in feature.dependencies
+                    if dependencies_count[f_name] == 0
+                ]
+                while stack:
+                    f_node_name = stack.pop()
+                    if visited[f_node_name]:
+                        continue
+
+                    # Mark this node as visited
+                    visited[f_node_name] = 1
+
+                    # Get the feature object by its name
+                    f_node = self.features[f_node_name]
+
+                    # Resolve dependencies of this node
+                    node_feature_depends = [
+                        (f_name, dependencies_count[f_name])
+                        for f_name in f_node.dependencies
+                    ]
+
+                    if 0 in [x[1] for x in node_feature_depends]:
+                        # If there are still unresolved dependencies, push back on stack
+                        stack.append(f_node_name)
+                        for dep_name, dep_count in node_feature_depends:
+                            if dep_count == 0 and not visited[dep_name]:
+                                stack.append(dep_name)
+                    else:
+                        # All dependencies resolved, update count
+                        dependencies_count[f_node_name] = sum(
+                            [x[1] for x in node_feature_depends]
+                        )
+
+                # Finally, update the current feature's dependency count
+                dependencies_count[feature.name] = sum(
+                    [dependencies_count[f_name] for f_name in feature.dependencies]
+                )
+
+        verify_dependencies(dependencies_count)
+        self.queue = sorted(
+            self.features.values(),
+            key=lambda f: dependencies_count[f.name],
         )
-        for feature in dependent_features_sorted:
-            self.queue.append(feature)
-            visited[feature.name] = 1
 
     def get_visual_dependency_graph(
         self, save_plot: bool = False, output_file: str = "feature_dependencies"

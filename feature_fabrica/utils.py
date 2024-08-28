@@ -1,6 +1,7 @@
 # utils.py
 from loguru import logger
 import sys
+from .exceptions import CyclicDependencyError
 
 logger_set = False
 
@@ -38,3 +39,12 @@ def get_logger():
     if not logger_set:
         setup_logger()
     return logger
+
+
+def verify_dependencies(dependencies_count: dict[str, int]):
+    if 0 in dependencies_count.values():
+        loop_features = [f_name for f_name, c in dependencies_count.items() if c == 0]
+        logger.error(
+            f"Cyclic dependency detected! The following features form a cycle: {loop_features}"
+        )
+        raise CyclicDependencyError(loop_features)
