@@ -3,6 +3,8 @@ from collections.abc import Iterable, Mapping
 import inspect
 from loguru import logger
 from ..core import Feature
+import time
+from easydict import EasyDict as edict
 
 
 class Transformation(ABC):
@@ -59,4 +61,16 @@ class Transformation(ABC):
 
     @logger.catch
     def __call__(self, *args):
-        return self.execute(*args)
+        # Start time
+        start_time = time.time()
+
+        value = self.execute(*args)
+
+        # End time
+        end_time = time.time()
+
+        return edict(
+            start_time=start_time,
+            value=value,
+            end_time=end_time,
+        )

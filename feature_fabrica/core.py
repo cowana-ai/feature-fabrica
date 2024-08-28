@@ -1,5 +1,5 @@
 # core.py
-from .models import FeatureSpec, FeatureValue, TNode
+from .models import FeatureSpec, FeatureValue, TNode, THead
 from .yaml_parser import load_yaml
 from collections import defaultdict
 from omegaconf import OmegaConf
@@ -20,9 +20,7 @@ class Feature:
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
         self.transformation = instantiate(self.spec.transformation)
-        self.transformation_chain = TNode(
-            **{"value": None, "transformation_name": "head"}
-        )
+        self.transformation_chain = THead()
         self.transformation_ptr = self.transformation_chain
 
         self.computed = False
@@ -31,17 +29,17 @@ class Feature:
         # Apply the transformation function if specified
         if self.transformation:
             try:
-                result = value
+                prev_value = value
                 for key, transformation_obj in self.transformation.items():
                     expects_data = transformation_obj.compile(dependencies)
                     if expects_data:
-                        result = transformation_obj(result)
+                        result_dict = transformation_obj(prev_value)
                     else:
-                        result = transformation_obj()
-
-                    transformation_node = TNode(
-                        **{"value": result, "transformation_name": key}
-                    )
+                        result_dict = transformation_obj()
+                    result_dict["transformation_name"] = key
+                    prev_value = result_dict.value
+                    transformation_node = TNode(**result_dict)
+                    transformation_node.finilize_metrics()
                     self.transformation_ptr.next = transformation_node
                     self.transformation_ptr = transformation_node
             except Exception as e:
@@ -49,6 +47,7 @@ class Feature:
                 logger.debug(transformation_chain_str)
                 logger.error(f"An error occurred during the transformation {key}: {e}")
                 raise
+            result = result_dict.value
 
         else:
             assert dependencies is None
@@ -64,7 +63,7 @@ class Feature:
         chain_list = []
         while current:
             chain_list.append(
-                f"(Transformation: {current.transformation_name}, Value: {current.value})"
+                f"(Transformation: {current.transformation_name}, Value: {current.value},  Time taken: {current.time_taken} seconds)"
             )
             current = current.next
         return "Transformation Chain: " + " -> ".join(chain_list)

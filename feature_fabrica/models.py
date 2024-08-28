@@ -42,6 +42,9 @@ class FeatureValue(BaseModel):
 class TNode(BaseModel):
     value: Any
     transformation_name: str
+    start_time: float
+    end_time: float
+    time_taken: float | None = None
     next: Optional["TNode"] = None  # Forward reference
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,3 +58,10 @@ class TNode(BaseModel):
         else:
             node_dict["next"] = None
         return node_dict
+
+    def finilize_metrics(self) -> None:
+        self.time_taken = self.end_time - self.start_time
+
+
+class THead(BaseModel):
+    next: TNode | None = None

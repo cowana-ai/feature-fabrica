@@ -109,7 +109,7 @@ feature_manager = FeatureManager(
 )
 results = feature_manager.compute_features(data)
 print(feature_manager.features.feature_c.get_transformation_chain())
-# Transformation Chain: (Transformation: sum_fn, Value: 30.0) -> (Transformation: scale_feature, Value: 15.0)
+# Transformation Chain: (Transformation: sum_fn, Value: 30.0 Time taken: 9.5367431640625e-07 seconds) -> (Transformation: scale_feature, Value: 15.0, Time taken:  9.5367431640625e-07 seconds)
 ```
 
 Visualize Dependencies
