@@ -47,14 +47,13 @@ class Feature:
                 logger.debug(transformation_chain_str)
                 logger.error(f"An error occurred during the transformation {key}: {e}")
                 raise
-            result = result_dict.value
+            value = result_dict.value
 
         else:
-            assert dependencies is None
-            result = value
+            assert dependencies is None, "Derived features must have transformations!"
 
         # Validate the final result with FeatureValue
-        self.feature_value = FeatureValue(value=result, data_type=self.spec.data_type)
+        self.feature_value = FeatureValue(value=value, data_type=self.spec.data_type)
         self.computed = True
         return self.feature_value.value
 
