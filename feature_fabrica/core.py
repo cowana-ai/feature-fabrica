@@ -81,7 +81,17 @@ class FeatureManager:
         self.features: edict = self._build_features()
         self.compile()
 
+    @logger.catch
     def _build_features(self) -> edict:
+        """Builds features. Separates features into dependent_features and independent_features features.
+
+        Returns
+        -------
+        edict
+            Dictionary:
+                key - > feature name (string)
+                value -> feature (Feature class).
+        """
         logger.info("Building features from feature definition YAML")
 
         features = {}
@@ -97,7 +107,14 @@ class FeatureManager:
 
         return edict(features)
 
+    @logger.catch
     def compile(self):
+        """Identifies feature dependencies and the order in which Features are visited and computed.
+
+        Returns
+        -------
+        None.
+        """
         logger.info("Compiling feature dependencies")
 
         dependencies_count = defaultdict(int)
@@ -187,6 +204,19 @@ class FeatureManager:
         return dot
 
     def compute_features(self, data: dict[str, Any]) -> edict:
+        """
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            Data point.
+
+        Returns
+        -------
+        Dictionary
+            Processed data point with derived features as well.
+
+        """
         results = {}
 
         assert len(self.queue) == len(self.features)
