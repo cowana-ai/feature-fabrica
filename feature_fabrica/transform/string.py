@@ -28,11 +28,6 @@ class Split(Transformation):
         return data.split(self.delimiter)
 
 
-class GetLength(Transformation):
-    def execute(self, data: str) -> int:
-        return len(data)
-
-
 class OneHotEncode(Transformation):
     def __init__(self, categories: list[str]):
         self.categories = categories
