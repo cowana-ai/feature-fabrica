@@ -18,7 +18,7 @@ class ScaleFeature(Transformation):
         self.factor = factor
 
     def execute(self, data: float) -> float:
-        return data * self.factor
+        return np.multiply(data, self.factor)
 
 
 class LogTransform(Transformation):

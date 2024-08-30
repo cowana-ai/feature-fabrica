@@ -17,6 +17,7 @@ class TestFeatureSet(unittest.TestCase):
         data = {
             "feature_a": "invalid_string",
             "feature_b": 20,
+            "feature_e": "Hellow World",
         }  # Expecting float, got str
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
@@ -25,7 +26,7 @@ class TestFeatureSet(unittest.TestCase):
             feature_manager.compute_features(data)
 
     def test_compute_features_single_data(self):
-        data = {"feature_a": 10.0, "feature_b": 20.0}
+        data = {"feature_a": 10.0, "feature_b": 20.0, "feature_e": "Hellow World"}
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
         )
@@ -35,9 +36,14 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(
             feature_manager.features.feature_c.feature_value.value, 15.0
         )  # 0.5 * (10 + 20)
+        self.assertEqual(results.feature_e, "hellow world")
 
     def test_compute_features_array(self):
-        data = {"feature_a": list(range(100)), "feature_b": list(range(100, 200))}
+        data = {
+            "feature_a": list(range(100)),
+            "feature_b": list(range(100, 200)),
+            "feature_e": "Hellow World",
+        }
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
         )

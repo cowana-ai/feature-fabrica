@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from graphviz import Digraph
 from .utils import get_logger, verify_dependencies
+from .exceptions import FeatureNotComputedError
 
 logger = get_logger()
 
@@ -243,5 +244,71 @@ class FeatureManager:
                     result = feature.compute(dependencies=dependencies)
 
                 results[feature.name] = result
-
+        self.report()
         return edict(results)
+
+    def report(self):
+        logger.info("Generating feature transformation report...")
+
+        bottlenecks = []
+
+        for feature in self.features.values():
+            f_name = feature.name
+
+            if not feature.computed:
+                logger.error(
+                    f"Feature '{f_name}' isn't computed! Unable to generate a report for it."
+                )
+                raise FeatureNotComputedError(f_name)
+
+            total_transformations = len(feature.transformation)
+            # Calculate the total compute time for the feature
+            total_time = 0.0
+            current = feature.transformation_chain.next
+            while current:
+                total_time += current.time_taken
+                current = current.next
+
+            # Log the report for each transformation
+            logger.info(f"Feature '{f_name}':")
+            current = feature.transformation_chain.next
+            chain_list = []
+            while current:
+                transformation_name = current.transformation_name
+                time_taken = current.time_taken
+                percentage = (time_taken / total_time) * 100 if total_time > 0 else 0
+                chain_list.append((transformation_name, time_taken, percentage))
+
+                # Log and detect bottlenecks
+                # TODO: configurable?
+                if total_transformations >= 3:
+                    if percentage > 80:
+                        logger.error(
+                            f"  - {transformation_name}: {time_taken:.4f} seconds ({percentage:.2f}%) [SEVERE BOTTLENECK]"
+                        )
+                        bottlenecks.append((f_name, transformation_name, "SEVERE"))
+                    elif percentage > 50:
+                        logger.warning(
+                            f"  - {transformation_name}: {time_taken:.4f} seconds ({percentage:.2f}%) [MODERATE BOTTLENECK]"
+                        )
+                        bottlenecks.append((f_name, transformation_name, "MODERATE"))
+                    else:
+                        logger.info(
+                            f"  - {transformation_name}: {time_taken:.4f} seconds ({percentage:.2f}%)"
+                        )
+                else:
+                    logger.info(
+                        f"  - {transformation_name}: {time_taken:.4f} seconds ({percentage:.2f}%) [NO BOTTLENECK]"
+                    )
+
+                current = current.next
+
+        # Summary of Bottlenecks
+        if bottlenecks:
+            logger.info("Bottleneck Summary:")
+            for feature_name, transformation_name, severity in bottlenecks:
+                logger.info(
+                    f"Feature '{feature_name}' has a {severity} bottleneck in '{transformation_name}'."
+                )
+
+        logger.info("Feature transformation report generated successfully.")
