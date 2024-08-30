@@ -40,7 +40,6 @@ class FeatureValue(BaseModel):
 
         if expected_type is None:
             raise ValueError(f"Unsupported data type '{data_type}'")
-
         # Convert value to a numpy array if it's not already an array
         if not isinstance(v, np.ndarray):
             try:
@@ -51,7 +50,7 @@ class FeatureValue(BaseModel):
                 )
         else:
             # Validate that the array has the correct data type
-            if v.dtype != expected_type:
+            if v.dtype.type != expected_type:
                 raise ValueError(
                     f"Array dtype '{v.dtype}' does not match expected type '{data_type}'"
                 )

@@ -29,3 +29,10 @@ feature_c:
     scale_feature:
       _target_: feature_fabrica.transform.ScaleFeature
       factor: 0.5
+
+feature_e:
+  description: "Raw feature E"
+  data_type: "str_"
+  transformation:
+    to_lower:
+      _target_: feature_fabrica.transform.ToLower
