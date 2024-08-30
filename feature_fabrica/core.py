@@ -53,7 +53,6 @@ class Feature:
         else:
             assert dependencies is None, "Derived features must have transformations!"
 
-        # Validate the final result with FeatureValue
         self.feature_value = FeatureValue(value=value, data_type=self.spec.data_type)  # type: ignore[assignment]
         self.computed = True
         return self.feature_value.value  # type: ignore[attr-defined]

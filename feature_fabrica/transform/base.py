@@ -78,8 +78,16 @@ class Transformation(ABC):
         if self.v_execute is not None:
             value = self.v_execute(*args)
         else:
-            value = self.execute(*args)
+            if len(args) == 1:
+                input = args[0]
+                # treat str as single input
+                if isinstance(input, Iterable) and not isinstance(input, str):
+                    value = np.stack([self.execute(v) for v in input])
+                else:
+                    value = self.execute(input)
 
+            else:
+                value = self.execute()
         # End time
         end_time = time.time()
 
