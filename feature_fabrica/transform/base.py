@@ -1,15 +1,19 @@
 from abc import ABC
 from collections.abc import Iterable, Mapping
 import inspect
-from loguru import logger
 from ..core import Feature
 import time
 from easydict import EasyDict as edict
+import numpy as np
+from ..utils import get_logger
+
+logger = get_logger()
 
 
 class Transformation(ABC):
     def __init__(self) -> None:
         self.expects_data = False
+        self.v_execute = None
 
     def compile(self, features: dict[str, Feature] | None) -> bool:
         if features is not None:
@@ -45,6 +49,14 @@ class Transformation(ABC):
         execute_signature = inspect.signature(self.execute)
         execute_params = execute_signature.parameters
 
+        try:
+            # TODO: polars? numba?
+            self.v_execute = np.vectorize(self.execute)
+        except Exception as e:
+            logger.warning(
+                f"Warning: Could not np.vectorize {type(self).__name__} due to {e}, operations will be executed as usual"
+            )
+
         # Raise an error if execute expects more than one argument (excluding 'self')
         if len(execute_params) > 2:  # 'self' and one additional argument
             raise TypeError(
@@ -63,8 +75,10 @@ class Transformation(ABC):
     def __call__(self, *args):
         # Start time
         start_time = time.time()
-
-        value = self.execute(*args)
+        if self.v_execute is not None:
+            value = self.v_execute(*args)
+        else:
+            value = self.execute(*args)
 
         # End time
         end_time = time.time()

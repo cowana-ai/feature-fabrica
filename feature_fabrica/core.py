@@ -1,13 +1,13 @@
 # core.py
 from .models import FeatureSpec, FeatureValue, TNode, THead
+from typing import Any
+from easydict import EasyDict as edict
 from .yaml_parser import load_yaml
 from collections import defaultdict
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from graphviz import Digraph
-from easydict import EasyDict as edict
 from .utils import get_logger, verify_dependencies
-from typing import Any
 
 logger = get_logger()
 
@@ -15,7 +15,6 @@ logger = get_logger()
 class Feature:
     def __init__(self, name: str, spec: OmegaConf):
         self.name = name
-        # print(spec)
         self.feature_value = None
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
@@ -76,7 +75,7 @@ class FeatureManager:
 
         self.independent_features: list[Feature] = []
         self.dependent_features: list[Feature] = []
-        self.queue: list[Feature] = []
+        self.queue: dict[int, list[Feature]] = defaultdict(list)
 
         self.features: edict = self._build_features()
         self.compile()
@@ -178,10 +177,8 @@ class FeatureManager:
                 )
 
         verify_dependencies(dependencies_count)
-        self.queue = sorted(
-            self.features.values(),
-            key=lambda f: dependencies_count[f.name],
-        )
+        for f_name, level in dependencies_count.items():
+            self.queue[level].append(self.features[f_name])
 
     def get_visual_dependency_graph(
         self, save_plot: bool = False, output_file: str = "feature_dependencies"
@@ -219,15 +216,23 @@ class FeatureManager:
         """
         results = {}
 
-        assert len(self.queue) == len(self.features)
-        for feature in self.queue:
-            name = feature.name
-            is_independent = not feature.dependencies
-            results[name] = feature.compute(
-                value=data[name] if is_independent else 0,
-                dependencies=None
-                if is_independent
-                else {f_name: self.features[f_name] for f_name in feature.dependencies},  # type: ignore[union-attr]
-            )
+        # A single pass over the queue to reduce recomputation
+        for priority in sorted(self.queue.keys()):
+            cur_features = self.queue[priority]
+
+            for feature in cur_features:
+                if not feature.dependencies:
+                    # Independent feature
+                    result = feature.compute(
+                        value=data[feature.name], dependencies=None
+                    )
+                else:
+                    # Dependent feature
+                    dependencies = {
+                        f_name: self.features[f_name] for f_name in feature.dependencies
+                    }
+                    result = feature.compute(value=0, dependencies=dependencies)
+
+                results[feature.name] = result
 
         return edict(results)

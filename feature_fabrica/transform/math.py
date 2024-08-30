@@ -1,6 +1,7 @@
 from typing import Any
 from .base import Transformation
 import math
+import numpy as np
 
 
 class SumFn(Transformation):
@@ -9,7 +10,7 @@ class SumFn(Transformation):
         self.iterable = iterable
 
     def execute(self):
-        return sum(self.iterable)
+        return np.sum(self.iterable, axis=0)
 
 
 class ScaleFeature(Transformation):

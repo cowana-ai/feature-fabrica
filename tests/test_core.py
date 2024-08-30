@@ -2,6 +2,7 @@
 import unittest
 from feature_fabrica.core import FeatureManager
 from pydantic import ValidationError
+import numpy as np
 
 
 class TestFeatureSet(unittest.TestCase):
@@ -23,7 +24,7 @@ class TestFeatureSet(unittest.TestCase):
         with self.assertRaises(ValidationError):
             feature_manager.compute_features(data)
 
-    def test_compute_all(self):
+    def test_compute_features_single_data(self):
         data = {"feature_a": 10.0, "feature_b": 20.0}
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"
@@ -34,6 +35,31 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(
             feature_manager.features.feature_c.feature_value.value, 15.0
         )  # 0.5 * (10 + 20)
+
+    def test_compute_features_array(self):
+        data = {"feature_a": list(range(100)), "feature_b": list(range(100, 200))}
+        feature_manager = FeatureManager(
+            config_path="../examples", config_name="basic_features"
+        )
+        results = feature_manager.compute_features(data)
+        # Assertions for array results
+        expected_values = 0.5 * (
+            np.array(data["feature_a"]) + np.array(data["feature_b"])
+        )
+
+        # Assert that the result is an array
+        self.assertIsInstance(results["feature_c"], np.ndarray)
+        self.assertIsInstance(results.feature_c, np.ndarray)
+        self.assertIsInstance(
+            feature_manager.features.feature_c.feature_value.value, np.ndarray
+        )
+
+        # Assert that the array has the expected values
+        np.testing.assert_array_equal(results["feature_c"], expected_values)
+        np.testing.assert_array_equal(results.feature_c, expected_values)
+        np.testing.assert_array_equal(
+            feature_manager.features.feature_c.feature_value.value, expected_values
+        )
 
 
 if __name__ == "__main__":
