@@ -1,6 +1,5 @@
 from typing import Any
 from .base import Transformation
-import math
 import numpy as np
 
 
@@ -24,17 +23,17 @@ class ScaleFeature(Transformation):
 
 class LogTransform(Transformation):
     def execute(self, data: float) -> float:
-        return math.log(data)
+        return np.log(data)
 
 
 class ExpTransform(Transformation):
     def execute(self, data: float) -> float:
-        return math.exp(data)
+        return np.exp(data)
 
 
 class SqrtTransform(Transformation):
     def execute(self, data: float) -> float:
-        return math.sqrt(data)
+        return np.sqrt(data)
 
 
 class PowerTransform(Transformation):
@@ -42,7 +41,7 @@ class PowerTransform(Transformation):
         self.power = power
 
     def execute(self, data: float) -> float:
-        return math.pow(data, self.power)
+        return np.pow(data, self.power)
 
 
 class ZScoreTransform(Transformation):
@@ -60,7 +59,7 @@ class ClipTransform(Transformation):
         self.max = max
 
     def execute(self, data: float) -> float:
-        return min(max(data, self.min), self.max)
+        return np.clip(data, self.min, self.max)
 
 
 class MinMaxTransform(Transformation):

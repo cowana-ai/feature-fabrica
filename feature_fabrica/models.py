@@ -14,10 +14,10 @@ class FeatureSpec(BaseModel):
     @validator("data_type")
     def validate_data_type(cls, v):
         try:
-            # Check if the data_type is a valid Python type
-            if v not in dir(builtins):
+            # Check if the data_type is a valid type
+            if not (getattr(builtins, v, None) or getattr(np, v, None)):
                 raise ValueError(
-                    f"Invalid data_type specified: {v}, it should be in builtins"
+                    f"Invalid data_type specified: {v}, it should be in builtins or numpy"
                 )
         except Exception as e:
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")

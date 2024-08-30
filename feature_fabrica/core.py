@@ -24,27 +24,29 @@ class Feature:
 
         self.computed = False
 
-    def compute(self, value, dependencies=None):
+    def compute(self, value: Any = 0, dependencies: dict[str, "Feature"] | None = None):
         # Apply the transformation function if specified
         if self.transformation:
             try:
                 prev_value = value
-                for key, transformation_obj in self.transformation.items():
+                for (
+                    transformation_name,
+                    transformation_obj,
+                ) in self.transformation.items():
                     expects_data = transformation_obj.compile(dependencies)
                     if expects_data:
                         result_dict = transformation_obj(prev_value)
                     else:
                         result_dict = transformation_obj()
-                    result_dict["transformation_name"] = key
                     prev_value = result_dict.value
-                    transformation_node = TNode(**result_dict)
-                    transformation_node.finilize_metrics()
-                    self.transformation_ptr.next = transformation_node
-                    self.transformation_ptr = transformation_node
+                    self.update_transformation_chain(transformation_name, result_dict)
+
             except Exception as e:
                 transformation_chain_str = self.get_transformation_chain()
                 logger.debug(transformation_chain_str)
-                logger.error(f"An error occurred during the transformation {key}: {e}")
+                logger.error(
+                    f"An error occurred during the transformation {transformation_name}: {e}"
+                )
                 raise
             value = result_dict.value
 
@@ -52,9 +54,19 @@ class Feature:
             assert dependencies is None, "Derived features must have transformations!"
 
         # Validate the final result with FeatureValue
-        self.feature_value = FeatureValue(value=value, data_type=self.spec.data_type)
+        self.feature_value = FeatureValue(value=value, data_type=self.spec.data_type)  # type: ignore[assignment]
         self.computed = True
-        return self.feature_value.value
+        return self.feature_value.value  # type: ignore[attr-defined]
+
+    def update_transformation_chain(
+        self, transformation_name: str, result_dict: dict[str, Any]
+    ):
+        transformation_node = TNode(
+            transformation_name=transformation_name, **result_dict
+        )
+        transformation_node.finilize_metrics()
+        self.transformation_ptr.next = transformation_node
+        self.transformation_ptr = transformation_node
 
     def get_transformation_chain(self) -> str:
         current = self.transformation_chain.next
@@ -223,15 +235,13 @@ class FeatureManager:
             for feature in cur_features:
                 if not feature.dependencies:
                     # Independent feature
-                    result = feature.compute(
-                        value=data[feature.name], dependencies=None
-                    )
+                    result = feature.compute(value=data[feature.name])
                 else:
                     # Dependent feature
                     dependencies = {
                         f_name: self.features[f_name] for f_name in feature.dependencies
                     }
-                    result = feature.compute(value=0, dependencies=dependencies)
+                    result = feature.compute(dependencies=dependencies)
 
                 results[feature.name] = result
 

@@ -1,15 +1,15 @@
 # examples/basic_features.yaml
 feature_a:
   description: "Raw feature A"
-  data_type: "float"
+  data_type: "float32"
 
 feature_b:
   description: "Raw feature B"
-  data_type: "float"
+  data_type: "float32"
 
 feature_d:
   description: "Derived feature D"
-  data_type: "float"
+  data_type: "float32"
   dependencies: ["feature_a", "feature_b", "feature_c"]
   transformation:
     sum_fn:
@@ -20,7 +20,7 @@ feature_d:
 
 feature_c:
   description: "Derived feature C"
-  data_type: "float"
+  data_type: "float32"
   dependencies: ["feature_a", "feature_b"]
   transformation:
     sum_fn:
