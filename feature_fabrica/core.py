@@ -1,16 +1,18 @@
 # core.py
-from .models import FeatureSpec, FeatureValue, TNode, THead
-from typing import Any
-from easydict import EasyDict as edict
-from .yaml_parser import load_yaml
 from collections import defaultdict
-from omegaconf import DictConfig
-from hydra.utils import instantiate
-from graphviz import Digraph
-from .utils import get_logger, verify_dependencies
-from .exceptions import FeatureNotComputedError
+from typing import Any
+
 import numpy as np
-from beartype import beartype, BeartypeConf, BeartypeStrategy
+from beartype import BeartypeConf, BeartypeStrategy, beartype
+from easydict import EasyDict as edict
+from graphviz import Digraph
+from hydra.utils import instantiate
+from omegaconf import DictConfig
+
+from feature_fabrica.exceptions import FeatureNotComputedError
+from feature_fabrica.models import FeatureSpec, FeatureValue, THead, TNode
+from feature_fabrica.utils import get_logger, verify_dependencies
+from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()
 # Dynamically create a new @slowmobeartype decorator enabling "full fat"

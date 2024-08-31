@@ -1,9 +1,11 @@
-from .base import Transformation
-import numpy as np
 from typing import Union
+
+import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
 from sklearn.preprocessing import OneHotEncoder
+
+from feature_fabrica.transform.base import Transformation
 
 StrArray = Union[NDArray[np.str_], np.ndarray]
 StrValue = Union[np.str_, str]

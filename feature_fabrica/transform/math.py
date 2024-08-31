@@ -1,9 +1,11 @@
-from typing import Union
 from collections.abc import Iterable
-from .base import Transformation
+from typing import Union
+
 import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
+
+from feature_fabrica.transform.base import Transformation
 
 NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
 NumericValue = Union[np.floating, np.int_, float, int]

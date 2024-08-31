@@ -1,7 +1,9 @@
 # utils.py
-from loguru import logger
 import sys
-from .exceptions import CyclicDependencyError
+
+from loguru import logger
+
+from feature_fabrica.exceptions import CyclicDependencyError
 
 logger_set = False
 
