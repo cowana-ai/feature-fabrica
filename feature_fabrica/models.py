@@ -1,7 +1,6 @@
 # models.py
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, validator, root_validator, ConfigDict
 from typing import Any, Optional
-import builtins
 import numpy as np
 
 
@@ -15,7 +14,7 @@ class FeatureSpec(BaseModel):
     def validate_data_type(cls, v):
         try:
             # Check if the data_type is a valid type
-            if not (getattr(builtins, v, None) or getattr(np, v, None)):
+            if not (getattr(np, v, None)):
                 raise ValueError(
                     f"Invalid data_type specified: {v}, it should be in builtins or numpy"
                 )
@@ -25,7 +24,9 @@ class FeatureSpec(BaseModel):
 
 
 class FeatureValue(BaseModel):
-    value: Any
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    value: np.ndarray
     data_type: str
 
     @root_validator(pre=True)
@@ -34,26 +35,16 @@ class FeatureValue(BaseModel):
         data_type = values.get("data_type")
 
         # Get the expected data type from builtins or numpy
-        expected_type = getattr(builtins, data_type, None)
-        if not expected_type:
-            expected_type = getattr(np, data_type, None)
+        expected_type = getattr(np, data_type, None)
 
         if expected_type is None:
             raise ValueError(f"Unsupported data type '{data_type}'")
-        # Convert value to a numpy array if it's not already an array
-        if not isinstance(v, np.ndarray):
-            try:
-                v = np.array(v, dtype=expected_type)
-            except (ValueError, TypeError) as e:
-                raise ValueError(
-                    f"Value '{v}' cannot be converted to array of type '{data_type}': {e}"
-                )
-        else:
-            # Validate that the array has the correct data type
-            if v.dtype.type != expected_type:
-                raise ValueError(
-                    f"Array dtype '{v.dtype}' does not match expected type '{data_type}'"
-                )
+
+        # Validate that the array has the correct data type
+        if v.dtype.type != expected_type:
+            raise ValueError(
+                f"Array dtype '{v.dtype}' does not match expected type '{data_type}'"
+            )
 
         # Update the value in the values dictionary
         values["value"] = v

@@ -1,14 +1,21 @@
-from typing import Any
+from typing import Union
+from collections.abc import Iterable
 from .base import Transformation
 import numpy as np
+from beartype import beartype
+from numpy.typing import NDArray
+
+NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
+NumericValue = Union[np.floating, np.int_, float, int]
 
 
 class SumFn(Transformation):
-    def __init__(self, iterable: list[Any] | str):
+    def __init__(self, iterable: Iterable):
         super().__init__()
         self.iterable = iterable
 
-    def execute(self):
+    @beartype
+    def execute(self) -> NumericArray | NumericValue:
         return np.sum(self.iterable, axis=0)
 
 
@@ -17,22 +24,26 @@ class ScaleFeature(Transformation):
         super().__init__()
         self.factor = factor
 
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.multiply(data, self.factor)
 
 
 class LogTransform(Transformation):
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.log(data)
 
 
 class ExpTransform(Transformation):
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.exp(data)
 
 
 class SqrtTransform(Transformation):
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.sqrt(data)
 
 
@@ -40,7 +51,8 @@ class PowerTransform(Transformation):
     def __init__(self, power: float):
         self.power = power
 
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.pow(data, self.power)
 
 
@@ -49,7 +61,8 @@ class ZScoreTransform(Transformation):
         self.mean = mean
         self.std_dev = std_dev
 
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return (data - self.mean) / self.std_dev
 
 
@@ -58,7 +71,8 @@ class ClipTransform(Transformation):
         self.min = min
         self.max = max
 
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.clip(data, self.min, self.max)
 
 
@@ -67,5 +81,6 @@ class MinMaxTransform(Transformation):
         self.min = min
         self.max = max
 
-    def execute(self, data: float) -> float:
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return (data - self.min) / (self.max - self.min)

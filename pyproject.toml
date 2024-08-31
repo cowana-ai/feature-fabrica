@@ -13,6 +13,8 @@ pydantic = "^2.8.2"
 easydict = "^1.13"
 loguru = "^0.7.2"
 numpy = "^2.1.0"
+beartype = "^0.18.5"
+scikit-learn = "^1.5.1"
 
 [build-system]
 requires = ["poetry-core"]

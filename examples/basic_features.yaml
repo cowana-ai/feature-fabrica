@@ -6,6 +6,10 @@ feature_a:
 feature_b:
   description: "Raw feature B"
   data_type: "float32"
+  transformation:
+    scale_feature:
+      _target_: feature_fabrica.transform.ScaleFeature
+      factor: 2
 
 feature_d:
   description: "Derived feature D"
@@ -32,7 +36,8 @@ feature_c:
 
 feature_e:
   description: "Raw feature E"
-  data_type: "str_"
+  data_type: "int32"
   transformation:
     to_lower:
-      _target_: feature_fabrica.transform.ToLower
+      _target_: feature_fabrica.transform.OneHotEncode
+      categories: ["apple", "orange"]

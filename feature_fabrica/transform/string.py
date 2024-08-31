@@ -1,63 +1,57 @@
 from .base import Transformation
 import numpy as np
+from typing import Union
+from beartype import beartype
+from numpy.typing import NDArray
+from sklearn.preprocessing import OneHotEncoder
+
+StrArray = Union[NDArray[np.str_], np.ndarray]
+StrValue = Union[np.str_, str]
 
 
 class ToLower(Transformation):
-    def execute(self, data: str) -> str:
-        return data.lower()
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
+        return np.strings.lower(data)
 
 
 class ToUpper(Transformation):
-    def execute(self, data: str) -> str:
-        return data.upper()
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
+        return np.strings.upper(data)
 
 
 class Strip(Transformation):
     def __init__(self, chars: str | None = None):
         self.chars = chars
 
-    def execute(self, data: str) -> str:
-        return data.strip(self.chars)
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
+        return np.strings.strip(data)
 
 
 class Split(Transformation):
     def __init__(self, delimiter: str):
         self.delimiter = delimiter
 
-    def execute(self, data: str) -> list[str]:
-        return data.split(self.delimiter)
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> np.ndarray:
+        return np.char.split(data, self.delimiter)
 
 
 class OneHotEncode(Transformation):
     def __init__(self, categories: list[str]):
         self.categories = categories
-        self.category_map = {category: idx for idx, category in enumerate(categories)}
+        self.encoder = OneHotEncoder(dtype=np.int32)
+        self.encoder.fit([[category] for category in categories])
 
-    def execute(self, data: str) -> np.ndarray:
-        # Create a zero array with the length of categories
-        one_hot = np.zeros(len(self.categories), dtype=int)
-        # Set the index corresponding to the category to 1
-        if data in self.category_map:
-            one_hot[self.category_map[data]] = 1
-        return one_hot
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> NDArray[np.int32]:
+        if isinstance(data, str):
+            data = np.array([data])
+        # Reshape the input data to a 2D array
+        data_reshaped = data.reshape(-1, 1)  # type: ignore[union-attr]
 
-
-class LabelEncode(Transformation):
-    def __init__(self, categories: list[str]):
-        self.categories = categories
-        self.category_map = {category: idx for idx, category in enumerate(categories)}
-
-    def execute(self, data: str) -> int:
-        # Return the index of the category or -1 if not found
-        return self.category_map.get(data, -1)
-
-
-class ExtractRegex(Transformation):
-    def __init__(self, pattern: str):
-        import re
-
-        self.pattern = re.compile(pattern)
-
-    def execute(self, data: str) -> str | None:
-        match = self.pattern.search(data)
-        return match.group(0) if match else None
+        # Transform the data using the fitted encoder
+        one_hot = self.encoder.transform(data_reshaped)
+        return one_hot.toarray()

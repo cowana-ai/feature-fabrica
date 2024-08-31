@@ -4,17 +4,24 @@ from typing import Any
 from easydict import EasyDict as edict
 from .yaml_parser import load_yaml
 from collections import defaultdict
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from hydra.utils import instantiate
 from graphviz import Digraph
 from .utils import get_logger, verify_dependencies
 from .exceptions import FeatureNotComputedError
+import numpy as np
+from beartype import beartype, BeartypeConf, BeartypeStrategy
 
 logger = get_logger()
+# Dynamically create a new @slowmobeartype decorator enabling "full fat"
+# O(n) type-checking.
+# Type-check all items of the passed list. Do this only when you pretend
+# to know in your guts that this list will *ALWAYS* be ignorably small.
+slowmobeartype = beartype(conf=BeartypeConf(strategy=BeartypeStrategy.On))
 
 
 class Feature:
-    def __init__(self, name: str, spec: OmegaConf):
+    def __init__(self, name: str, spec: DictConfig):
         self.name = name
         self.feature_value = None
         self.spec = FeatureSpec(**spec)
@@ -25,6 +32,7 @@ class Feature:
 
         self.computed = False
 
+    @logger.catch
     def compute(self, value: Any = 0, dependencies: dict[str, "Feature"] | None = None):
         # Apply the transformation function if specified
         if self.transformation:
@@ -48,7 +56,7 @@ class Feature:
                 logger.error(
                     f"An error occurred during the transformation {transformation_name}: {e}"
                 )
-                raise
+                raise e
             value = result_dict.value
 
         else:
@@ -81,7 +89,7 @@ class Feature:
 
 class FeatureManager:
     def __init__(self, config_path: str, config_name: str):
-        self.feature_specs: OmegaConf = load_yaml(
+        self.feature_specs: DictConfig = load_yaml(
             config_path=config_path, config_name=config_name
         )
 
@@ -105,7 +113,7 @@ class FeatureManager:
         """
         logger.info("Building features from feature definition YAML")
 
-        features = {}
+        features = edict()
         for name, spec in self.feature_specs.items():
             feature = Feature(name, spec)
 
@@ -116,7 +124,7 @@ class FeatureManager:
 
             features[name] = feature
 
-        return edict(features)
+        return features
 
     @logger.catch
     def compile(self):
@@ -212,7 +220,10 @@ class FeatureManager:
             logger.info(f"Dependencies graph saved as {output_file}.png")
         return dot
 
-    def compute_features(self, data: dict[str, Any]) -> edict:
+    @slowmobeartype
+    def compute_features_beartype(
+        self, data_keys: list[str], data_values: list[np.ndarray]
+    ) -> edict:
         """
 
         Parameters
@@ -226,6 +237,7 @@ class FeatureManager:
             Processed data point with derived features as well.
 
         """
+        data = dict(zip(data_keys, data_values))
         results = {}
 
         # A single pass over the queue to reduce recomputation
@@ -246,6 +258,9 @@ class FeatureManager:
                 results[feature.name] = result
         self.report()
         return edict(results)
+
+    def compute_features(self, data: dict[str, np.ndarray]) -> edict:
+        return self.compute_features_beartype(list(data.keys()), list(data.values()))
 
     def report(self):
         logger.info("Generating feature transformation report...")
