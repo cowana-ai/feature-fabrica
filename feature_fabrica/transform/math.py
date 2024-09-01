@@ -12,17 +12,28 @@ NumericValue = Union[np.floating, np.int_, float, int]
 
 
 class BaseReduce(Transformation):
-    def __init__(self, iterable: Iterable):
+    def __init__(self, iterable: Iterable | None = None, axis: int = 0):
         super().__init__()
         self.iterable = iterable
+        self.axis = axis
+        if self.iterable:
+            self.execute = self.default  # type: ignore[method-assign]
+        else:
+            self.execute = self.with_data  # type: ignore[method-assign]
+
+    def default(self):
+        raise NotImplementedError()
+
+    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
+        raise NotImplementedError()
 
 
 class SumReduce(BaseReduce):
     @beartype
-    def execute(self) -> NumericArray | NumericValue:
+    def default(self) -> NumericArray | NumericValue:
         # Normalize all elements to np.array
         normalized_iterable = []
-        for element in self.iterable:
+        for element in self.iterable:  # type: ignore[union-attr]
             if not isinstance(element, np.ndarray):
                 element = np.array([element], dtype=np.float32)
             normalized_iterable.append(element)
@@ -33,15 +44,19 @@ class SumReduce(BaseReduce):
         broadcasted_iterable = [
             np.broadcast_to(elem, max_shape) for elem in normalized_iterable
         ]
-        return np.add.reduce(broadcasted_iterable, axis=0)
+        return np.add.reduce(broadcasted_iterable, axis=self.axis)
+
+    @beartype
+    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
+        return np.add.reduce(data, axis=self.axis)
 
 
 class MultiplyReduce(BaseReduce):
     @beartype
-    def execute(self) -> NumericArray | NumericValue:
+    def default(self) -> NumericArray | NumericValue:
         # Normalize all elements to np.array
         normalized_iterable = []
-        for element in self.iterable:
+        for element in self.iterable:  # type: ignore[union-attr]
             if not isinstance(element, np.ndarray):
                 element = np.array([element], dtype=np.float32)
             normalized_iterable.append(element)
@@ -52,7 +67,11 @@ class MultiplyReduce(BaseReduce):
         broadcasted_iterable = [
             np.broadcast_to(elem, max_shape) for elem in normalized_iterable
         ]
-        return np.multiply.reduce(broadcasted_iterable, axis=0)
+        return np.multiply.reduce(broadcasted_iterable, axis=self.axis)
+
+    @beartype
+    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
+        return np.multiply.reduce(data, axis=self.axis)
 
 
 class DivideTransform(Transformation):

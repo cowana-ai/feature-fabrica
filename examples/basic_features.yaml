@@ -33,7 +33,7 @@ feature_c:
       iterable: ["feature_a", "feature_b"]
     scale_feature:
       _target_: feature_fabrica.transform.ScaleFeature
-      factor: "feature_a"
+      factor: 0.5
 
 feature_e:
   description: "Raw feature E"

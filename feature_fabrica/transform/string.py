@@ -69,9 +69,7 @@ class LabelEncode(Transformation):
     def execute(self, data: StrArray | StrValue) -> NDArray[np.int32]:
         if isinstance(data, str):
             data = np.array([data])
-        # Reshape the input data to a 2D array
-        data_reshaped = data.reshape(-1, 1)  # type: ignore[union-attr]
 
         # Transform the data using the fitted encoder
-        labels = self.encoder.transform(data_reshaped)
+        labels = self.encoder.transform(data)
         return labels.astype(np.int32)

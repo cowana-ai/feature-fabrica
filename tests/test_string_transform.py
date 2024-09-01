@@ -1,4 +1,3 @@
-# ruff: noqa
 import unittest
 
 import numpy as np

@@ -23,7 +23,7 @@ slowmobeartype = beartype(conf=BeartypeConf(strategy=BeartypeStrategy.On))
 
 
 class Feature:
-    def __init__(self, name: str, spec: DictConfig):
+    def __init__(self, name: str, spec: DictConfig, debug: bool = False):
         self.name = name
         self.feature_value = None
         self.spec = FeatureSpec(**spec)
@@ -33,6 +33,7 @@ class Feature:
         self.transformation_ptr = self.transformation_chain
 
         self.computed = False
+        self.debug = debug
 
     @logger.catch
     def compute(self, value: Any = 0, dependencies: dict[str, "Feature"] | None = None):
@@ -50,14 +51,19 @@ class Feature:
                     else:
                         result_dict = transformation_obj()
                     prev_value = result_dict.value
-                    self.update_transformation_chain(transformation_name, result_dict)
+
+                    if self.debug:
+                        self.update_transformation_chain(
+                            transformation_name, result_dict
+                        )
 
             except Exception as e:
-                transformation_chain_str = self.get_transformation_chain()
-                logger.debug(transformation_chain_str)
-                logger.error(
-                    f"An error occurred during the transformation {transformation_name}: {e}"
-                )
+                if self.debug:
+                    transformation_chain_str = self.get_transformation_chain()
+                    logger.debug(transformation_chain_str)
+                    logger.error(
+                        f"An error occurred during the transformation {transformation_name}: {e}"
+                    )
                 raise e
             value = result_dict.value
 
@@ -79,6 +85,7 @@ class Feature:
         self.transformation_ptr = transformation_node
 
     def get_transformation_chain(self) -> str:
+        assert self.debug
         current = self.transformation_chain.next
         chain_list = []
         while current:
@@ -90,10 +97,11 @@ class Feature:
 
 
 class FeatureManager:
-    def __init__(self, config_path: str, config_name: str):
+    def __init__(self, config_path: str, config_name: str, debug: bool = False):
         self.feature_specs: DictConfig = load_yaml(
             config_path=config_path, config_name=config_name
         )
+        self.debug = debug
 
         self.independent_features: list[Feature] = []
         self.dependent_features: list[Feature] = []
@@ -258,7 +266,10 @@ class FeatureManager:
                     result = feature.compute(dependencies=dependencies)
 
                 results[feature.name] = result
-        self.report()
+
+        if self.debug:
+            self.report()
+
         return edict(results)
 
     def compute_features(self, data: dict[str, np.ndarray]) -> edict:

@@ -1,4 +1,3 @@
-# ruff: noqa
 import unittest
 
 import numpy as np
@@ -20,11 +19,21 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([5, 6, 7])
         assert_array_almost_equal(result, expected)
 
+        transform = SumReduce()
+        result = transform.execute(np.array([1, 2, 3]))
+        expected = np.array([6])
+        assert_array_almost_equal(result, expected)
+
     def test_multiply_reduce(self):
         data = [np.array([1, 2, 3]), 2]
         transform = MultiplyReduce(data)
         result = transform.execute()
         expected = np.array([2, 4, 6])
+        assert_array_almost_equal(result, expected)
+
+        transform = MultiplyReduce()
+        result = transform.execute(np.array([1, 2, 3]))
+        expected = np.array([6])
         assert_array_almost_equal(result, expected)
 
     def test_divide_transform_with_numerator(self):
