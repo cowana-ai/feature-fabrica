@@ -31,9 +31,9 @@ With **Feature Fabrica**, you can:
 
 To install **Feature Fabrica**, simply run:
 
-\`\`\`bash
+```bash
 pip install feature-fabrica
-\`\`\`
+```
 
 ### **Defining Features in YAML**
 
