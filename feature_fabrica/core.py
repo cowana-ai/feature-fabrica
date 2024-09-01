@@ -23,7 +23,7 @@ slowmobeartype = beartype(conf=BeartypeConf(strategy=BeartypeStrategy.On))
 
 
 class Feature:
-    def __init__(self, name: str, spec: DictConfig, debug: bool = False):
+    def __init__(self, name: str, spec: DictConfig):
         self.name = name
         self.feature_value = None
         self.spec = FeatureSpec(**spec)
@@ -33,7 +33,6 @@ class Feature:
         self.transformation_ptr = self.transformation_chain
 
         self.computed = False
-        self.debug = debug
 
     @logger.catch
     def compute(self, value: Any = 0, dependencies: dict[str, "Feature"] | None = None):
@@ -52,18 +51,14 @@ class Feature:
                         result_dict = transformation_obj()
                     prev_value = result_dict.value
 
-                    if self.debug:
-                        self.update_transformation_chain(
-                            transformation_name, result_dict
-                        )
+                    self.update_transformation_chain(transformation_name, result_dict)
 
             except Exception as e:
-                if self.debug:
-                    transformation_chain_str = self.get_transformation_chain()
-                    logger.debug(transformation_chain_str)
-                    logger.error(
-                        f"An error occurred during the transformation {transformation_name}: {e}"
-                    )
+                transformation_chain_str = self.get_transformation_chain()
+                logger.debug(transformation_chain_str)
+                logger.error(
+                    f"An error occurred during the transformation {transformation_name}: {e}"
+                )
                 raise e
             value = result_dict.value
 
@@ -74,18 +69,25 @@ class Feature:
         self.computed = True
         return self.feature_value.value  # type: ignore[attr-defined]
 
-    def update_transformation_chain(
-        self, transformation_name: str, result_dict: dict[str, Any]
-    ):
+    def update_transformation_chain(self, transformation_name: str, result_dict: edict):
+        if len(result_dict.value.shape) == 1:
+            value = np.random.choice(result_dict.value, 1)
+        else:
+            value = None
+        start_time = result_dict.start_time
+        end_time = result_dict.end_time
+
         transformation_node = TNode(
-            transformation_name=transformation_name, **result_dict
+            transformation_name=transformation_name,
+            value=value,
+            start_time=start_time,
+            end_time=end_time,
         )
         transformation_node.finilize_metrics()
         self.transformation_ptr.next = transformation_node
         self.transformation_ptr = transformation_node
 
     def get_transformation_chain(self) -> str:
-        assert self.debug
         current = self.transformation_chain.next
         chain_list = []
         while current:
@@ -97,11 +99,10 @@ class Feature:
 
 
 class FeatureManager:
-    def __init__(self, config_path: str, config_name: str, debug: bool = False):
+    def __init__(self, config_path: str, config_name: str):
         self.feature_specs: DictConfig = load_yaml(
             config_path=config_path, config_name=config_name
         )
-        self.debug = debug
 
         self.independent_features: list[Feature] = []
         self.dependent_features: list[Feature] = []
@@ -266,9 +267,6 @@ class FeatureManager:
                     result = feature.compute(dependencies=dependencies)
 
                 results[feature.name] = result
-
-        if self.debug:
-            self.report()
 
         return edict(results)
 

@@ -40,5 +40,5 @@ feature_e:
   data_type: "int32"
   transformation:
     one_hot:
-      _target_: feature_fabrica.transform.LabelEncode
+      _target_: feature_fabrica.transform.OneHotEncode
       categories: ["apple", "orange"]
