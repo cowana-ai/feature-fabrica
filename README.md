@@ -2,7 +2,9 @@
 
 **Feature Fabrica** is an open-source Python library designed to improve engineering practices and transparency in feature engineering. It allows users to define features declaratively using YAML, manage dependencies between features, and apply complex transformations in a scalable and convenient manner.
 
-![example_screenshot.png](media/example_screenshot.png)
+By providing a structured approach to feature engineering, Feature Fabrica aims to save time, reduce errors, and enhance the transparency and reproducibility of your machine learning workflows. Whether you’re a data scientist working on small projects or an engineer managing large-scale pipelines, Feature Fabrica is designed to meet your needs.
+
+For more detailed documentation and examples, please visit our GitHub repository.
 
 ## **Introduction**
 
