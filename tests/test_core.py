@@ -29,13 +29,13 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(
             feature_manager.features.feature_c.feature_value.value, 25.0
         )  # 0.5 * (10 + 20)
-        np.testing.assert_array_equal(results.feature_e, np.array([1]))
+        np.testing.assert_array_equal(results.feature_e, np.array([[0, 1]]))
 
     def test_compute_features_array(self):
         data = {
             "feature_a": np.array(list(range(100)), dtype=np.float32),
             "feature_b": np.array(list(range(100, 200)), dtype=np.float32),
-            "feature_e": np.array(["Hellow World"]),
+            "feature_e": np.array(["orange"]),
         }
         feature_manager = FeatureManager(
             config_path="../examples", config_name="basic_features"

@@ -1,4 +1,5 @@
 # core.py
+import concurrent.futures
 from collections import defaultdict
 from typing import Any
 
@@ -231,6 +232,19 @@ class FeatureManager:
             logger.info(f"Dependencies graph saved as {output_file}.png")
         return dot
 
+    def compute_single_feature(self, feature: Feature, data: dict[str, np.ndarray]):
+        # Check if the feature has dependencies
+        if not feature.dependencies:
+            # Independent feature
+            result = feature.compute(value=data[feature.name])
+        else:
+            # Dependent feature
+            dependencies = {
+                f_name: self.features[f_name] for f_name in feature.dependencies
+            }
+            result = feature.compute(dependencies=dependencies)
+        return feature.name, result
+
     @slowmobeartype
     def compute_features_beartype(
         self, data_keys: list[str], data_values: list[np.ndarray]
@@ -255,18 +269,14 @@ class FeatureManager:
         for priority in sorted(self.queue.keys()):
             cur_features = self.queue[priority]
 
-            for feature in cur_features:
-                if not feature.dependencies:
-                    # Independent feature
-                    result = feature.compute(value=data[feature.name])
-                else:
-                    # Dependent feature
-                    dependencies = {
-                        f_name: self.features[f_name] for f_name in feature.dependencies
-                    }
-                    result = feature.compute(dependencies=dependencies)
-
-                results[feature.name] = result
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future_to_feature = {
+                    executor.submit(self.compute_single_feature, feature, data): feature
+                    for feature in cur_features
+                }
+                for future in concurrent.futures.as_completed(future_to_feature):
+                    feature_name, result = future.result()
+                    results[feature_name] = result
 
         return edict(results)
 
