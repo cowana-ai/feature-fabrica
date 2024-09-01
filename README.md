@@ -4,8 +4,6 @@
 
 By providing a structured approach to feature engineering, Feature Fabrica aims to save time, reduce errors, and enhance the transparency and reproducibility of your machine learning workflows. Whether you’re a data scientist working on small projects or an engineer managing large-scale pipelines, Feature Fabrica is designed to meet your needs.
 
-For more detailed documentation and examples, please visit our GitHub repository.
-
 ## **Introduction**
 
 In machine learning and data science, feature engineering plays a crucial role in building effective models. However, managing complex feature dependencies and transformations can be challenging. **Feature Fabrica** aims to simplify and streamline this process by providing a structured way to define, manage, and transform features.
@@ -33,18 +31,17 @@ With **Feature Fabrica**, you can:
 Features are defined in a YAML file. Here’s an example:
 
 ```yaml
-# examples/basic_features.yaml
 feature_a:
   description: "Raw feature A"
-  data_type: "float"
+  data_type: "float32"
 
 feature_b:
   description: "Raw feature B"
-  data_type: "float"
+  data_type: "float32"
 
 feature_c:
   description: "Derived feature C"
-  data_type: "float"
+  data_type: "float32"
   dependencies: ["feature_a", "feature_b"]
   transformation:
     sum_fn:
@@ -61,18 +58,14 @@ feature_c:
 You can define custom transformations by subclassing the Transformation class:
 
 ```python
-# transform.py
-from feature_fabrica.core import Feature
+from typing import Union
+import numpy as np
+from beartype import beartype
+from numpy.typing import NDArray
 from feature_fabrica.transform import Transformation
 
-
-class SumFn(Transformation):
-    def __init__(self, iterable: list[Any] | str):
-        super().__init__()
-        self.iterable = iterable
-
-    def execute(self):
-        return sum(self.iterable)
+NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
+NumericValue = Union[np.floating, np.int_, float, int]
 
 
 class ScaleFeature(Transformation):
@@ -80,8 +73,9 @@ class ScaleFeature(Transformation):
         super().__init__()
         self.factor = factor
 
-    def execute(self, data: float):
-        return data * self.factor
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
+        return np.multiply(data, self.factor)
 ```
 
 ### **Compiling and Executing Features**
@@ -89,9 +83,13 @@ class ScaleFeature(Transformation):
 To compile and execute features:
 
 ```python
+import numpy as np
 from feature_fabrica.core import FeatureManager
 
-data = {"feature_a": 10.0, "feature_b": 20.0}
+data = {
+    "feature_a": np.array([10.0], dtype=np.float32),
+    "feature_b": np.array([20.0], dtype=np.float32),
+}
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
@@ -105,9 +103,13 @@ print(results.feature_c)  # 0.5 * (10 + 20) = 15.0
 Track & trace Transformation Chains
 
 ```python
+import numpy as np
 from feature_fabrica.core import FeatureManager
 
-data = {"feature_a": 10.0, "feature_b": 20.0}
+data = {
+    "feature_a": np.array([10.0], dtype=np.float32),
+    "feature_b": np.array([20.0], dtype=np.float32),
+}
 feature_manager = FeatureManager(
     config_path="../examples", config_name="basic_features"
 )
