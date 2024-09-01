@@ -5,7 +5,7 @@ with open("README.md", encoding="utf-8") as fh:
 
 setup(
     name="feature_fabrica",
-    version="0.1.7",
+    version="0.1.8",
     packages=find_packages(),
     url="https://github.com/cowana-ai/feature-fabrica",
     include_package_data=True,
