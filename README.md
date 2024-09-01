@@ -17,14 +17,23 @@ With **Feature Fabrica**, you can:
 
 **Key Features**
 
-- **Declarative Feature Definitions**: Define features, data types, and dependencies using a simple YAML configuration.
-- **Transformations**: Apply custom transformations to raw features to derive new features.
-- **Dependency Management**: Automatically handle dependencies between features.
-- **Pydantic Validation**: Ensure data types and values conform to expected formats.
-- **Scalability**: Designed to scale from small projects to large machine learning pipelines.
-- **Hydra Integration**: Leverage Hydra for configuration management, enabling flexible and dynamic configuration of transformations.
+- **📝 Declarative Feature Definitions**: Define features, data types, and dependencies using a simple YAML configuration.
+- **🔄 Transformations**: Apply custom transformations to raw features to derive new features.
+- **🔗 Dependency Management**: Automatically handle dependencies between features.
+- **✔️ Pydantic Validation**: Ensure data types and values conform to expected formats.
+- **🛡️ Fail-Fast with Beartype**: Instantly catch type-related errors with `beartype` during development, ensuring your transformations are robust and reliable.
+- **🚀 Scalability**: Designed to scale from small projects to large machine learning pipelines.
+- **🔧 Hydra Integration**: Leverage Hydra for configuration management, enabling flexible and dynamic configuration of transformations.
 
 ## **Quick Start**
+
+### 🛠️ Install via pip
+
+To install **Feature Fabrica**, simply run:
+
+\`\`\`bash
+pip install feature-fabrica
+\`\`\`
 
 ### **Defining Features in YAML**
 
