@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from feature_fabrica.transform.base import Transformation
 
@@ -57,3 +57,21 @@ class OneHotEncode(Transformation):
         # Transform the data using the fitted encoder
         one_hot = self.encoder.transform(data_reshaped)
         return one_hot.toarray()
+
+
+class LabelEncode(Transformation):
+    def __init__(self, categories: list[str]):
+        self.categories = categories
+        self.encoder = LabelEncoder()
+        self.encoder.fit(categories)
+
+    @beartype
+    def execute(self, data: StrArray | StrValue) -> NDArray[np.int32]:
+        if isinstance(data, str):
+            data = np.array([data])
+        # Reshape the input data to a 2D array
+        data_reshaped = data.reshape(-1, 1)  # type: ignore[union-attr]
+
+        # Transform the data using the fitted encoder
+        labels = self.encoder.transform(data_reshaped)
+        return labels.astype(np.int32)

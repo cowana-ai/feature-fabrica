@@ -11,14 +11,84 @@ NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
 NumericValue = Union[np.floating, np.int_, float, int]
 
 
-class SumFn(Transformation):
+class BaseReduce(Transformation):
     def __init__(self, iterable: Iterable):
         super().__init__()
         self.iterable = iterable
 
+
+class SumReduce(BaseReduce):
     @beartype
     def execute(self) -> NumericArray | NumericValue:
-        return np.sum(self.iterable, axis=0)
+        # Normalize all elements to np.array
+        normalized_iterable = []
+        for element in self.iterable:
+            if not isinstance(element, np.ndarray):
+                element = np.array([element], dtype=np.float32)
+            normalized_iterable.append(element)
+        # Find the maximum shape among the elements
+        max_shape = np.broadcast_shapes(*[elem.shape for elem in normalized_iterable])
+
+        # Broadcast elements to the maximum shape
+        broadcasted_iterable = [
+            np.broadcast_to(elem, max_shape) for elem in normalized_iterable
+        ]
+        return np.add.reduce(broadcasted_iterable, axis=0)
+
+
+class MultiplyReduce(BaseReduce):
+    @beartype
+    def execute(self) -> NumericArray | NumericValue:
+        # Normalize all elements to np.array
+        normalized_iterable = []
+        for element in self.iterable:
+            if not isinstance(element, np.ndarray):
+                element = np.array([element], dtype=np.float32)
+            normalized_iterable.append(element)
+        # Find the maximum shape among the elements
+        max_shape = np.broadcast_shapes(*[elem.shape for elem in normalized_iterable])
+
+        # Broadcast elements to the maximum shape
+        broadcasted_iterable = [
+            np.broadcast_to(elem, max_shape) for elem in normalized_iterable
+        ]
+        return np.multiply.reduce(broadcasted_iterable, axis=0)
+
+
+class DivideTransform(Transformation):
+    def __init__(
+        self,
+        numerator: str | float | None = None,
+        denominator: str | float | None = None,
+    ):
+        assert (
+            numerator or denominator
+        ), "You have to pass either numerator or denominator for computation!"
+
+        self.numerator = numerator
+        self.denominator = denominator
+
+        if numerator and denominator:
+            self.execute = self.default  # type: ignore[method-assign]
+        elif numerator:
+            self.execute = self.with_numerator  # type: ignore[method-assign]
+        else:
+            self.execute = self.with_denominator  # type: ignore[method-assign]
+
+    @beartype
+    def with_numerator(
+        self, data: NumericArray | NumericValue
+    ) -> NumericArray | NumericValue:
+        return self.numerator / data  # type: ignore[operator]
+
+    @beartype
+    def with_denominator(
+        self, data: NumericArray | NumericValue
+    ) -> NumericArray | NumericValue:
+        return data / self.denominator  # type: ignore[operator]
+
+    def default(self) -> NumericArray | NumericValue:
+        return self.numerator / self.denominator  # type: ignore[operator]
 
 
 class ScaleFeature(Transformation):

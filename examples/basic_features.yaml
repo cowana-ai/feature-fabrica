@@ -14,13 +14,14 @@ feature_b:
 feature_d:
   description: "Derived feature D"
   data_type: "float32"
-  dependencies: ["feature_a", "feature_b", "feature_c"]
+  dependencies: ["feature_a"]
   transformation:
     sum_fn:
-      _target_: feature_fabrica.transform.SumFn
-      iterable: ["feature_a", "feature_b", "feature_c"]
-    scale_feature:
-      _target_: feature_fabrica.transform.SqrtTransform
+      _target_: feature_fabrica.transform.SumReduce
+      iterable: ["feature_a", 2]
+    multiply:
+      _target_: feature_fabrica.transform.DivideTransform
+      numerator: 2
 
 feature_c:
   description: "Derived feature C"
@@ -28,16 +29,16 @@ feature_c:
   dependencies: ["feature_a", "feature_b"]
   transformation:
     sum_fn:
-      _target_: feature_fabrica.transform.SumFn
+      _target_: feature_fabrica.transform.SumReduce
       iterable: ["feature_a", "feature_b"]
     scale_feature:
       _target_: feature_fabrica.transform.ScaleFeature
-      factor: 0.5
+      factor: "feature_a"
 
 feature_e:
   description: "Raw feature E"
   data_type: "int32"
   transformation:
-    to_lower:
-      _target_: feature_fabrica.transform.OneHotEncode
+    one_hot:
+      _target_: feature_fabrica.transform.LabelEncode
       categories: ["apple", "orange"]
