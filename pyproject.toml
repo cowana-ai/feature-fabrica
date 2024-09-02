@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "feature-fabrica"
-version = "0.1.8"
+version = "1.0.0"
 description = "Open-source Python library designed to improve engineering practices and transparency in feature engineering."
 authors = ["Chingis Oinar <chingisoinar@gmail.com>"]
 readme = "README.md"
