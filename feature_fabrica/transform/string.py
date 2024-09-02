@@ -14,13 +14,13 @@ StrValue = Union[np.str_, str]
 class ToLower(Transformation):
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
-        return np.strings.lower(data)
+        return np.char.lower(data)
 
 
 class ToUpper(Transformation):
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
-        return np.strings.upper(data)
+        return np.char.upper(data)
 
 
 class Strip(Transformation):
@@ -29,7 +29,7 @@ class Strip(Transformation):
 
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
-        return np.strings.strip(data)
+        return np.char.strip(data)
 
 
 class Split(Transformation):

@@ -5,6 +5,7 @@ import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
 
+from feature_fabrica.models import FeatureValue
 from feature_fabrica.transform.base import Transformation
 
 NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
@@ -34,7 +35,9 @@ class SumReduce(BaseReduce):
         # Normalize all elements to np.array
         normalized_iterable = []
         for element in self.iterable:  # type: ignore[union-attr]
-            if not isinstance(element, np.ndarray):
+            if not isinstance(element, np.ndarray) and not isinstance(
+                element, FeatureValue
+            ):
                 element = np.array([element], dtype=np.float32)
             normalized_iterable.append(element)
         # Find the maximum shape among the elements
@@ -57,7 +60,9 @@ class MultiplyReduce(BaseReduce):
         # Normalize all elements to np.array
         normalized_iterable = []
         for element in self.iterable:  # type: ignore[union-attr]
-            if not isinstance(element, np.ndarray):
+            if not isinstance(element, np.ndarray) and not isinstance(
+                element, FeatureValue
+            ):
                 element = np.array([element], dtype=np.float32)
             normalized_iterable.append(element)
         # Find the maximum shape among the elements
@@ -144,7 +149,7 @@ class PowerTransform(Transformation):
 
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
-        return np.pow(data, self.power)
+        return data**self.power
 
 
 class ZScoreTransform(Transformation):
