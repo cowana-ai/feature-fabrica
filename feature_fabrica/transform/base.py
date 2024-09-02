@@ -22,13 +22,13 @@ class Transformation(ABC):
                     continue
 
                 if isinstance(attr_value, str) and attr_value in features:
-                    setattr(self, attr_name, features[attr_value].feature_value.value)  # type: ignore[attr-defined]
+                    setattr(self, attr_name, features[attr_value].feature_value)
                 elif isinstance(attr_value, Iterable):
                     setattr(
                         self,
                         attr_name,
                         [
-                            features[item].feature_value.value  # type: ignore[attr-defined]
+                            features[item].feature_value
                             if isinstance(item, str) and item in features
                             else item
                             for item in attr_value
@@ -39,7 +39,7 @@ class Transformation(ABC):
                         self,
                         attr_name,
                         {
-                            key: features[val].feature_value.value  # type: ignore[attr-defined]
+                            key: features[val].feature_value
                             if isinstance(val, str) and val in features
                             else val
                             for key, val in attr_value.items()

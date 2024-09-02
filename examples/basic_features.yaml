@@ -18,7 +18,7 @@ feature_d:
   transformation:
     sum_fn:
       _target_: feature_fabrica.transform.SumReduce
-      iterable: ["feature_a", 2]
+      iterable: [2, "feature_a"]
     multiply:
       _target_: feature_fabrica.transform.DivideTransform
       numerator: 2

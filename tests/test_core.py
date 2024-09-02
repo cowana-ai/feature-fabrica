@@ -9,7 +9,7 @@ from feature_fabrica.core import FeatureManager
 class TestFeatureSet(unittest.TestCase):
     def test_load_features(self):
         feature_manager = FeatureManager(
-            config_path="../examples", config_name="basic_features"
+            config_path="./examples", config_name="basic_features"
         )
         self.assertIn("feature_a", feature_manager.features)
         self.assertIn("feature_c", feature_manager.features)
@@ -21,7 +21,7 @@ class TestFeatureSet(unittest.TestCase):
             "feature_e": np.array(["orange"]),
         }
         feature_manager = FeatureManager(
-            config_path="../examples", config_name="basic_features"
+            config_path="./examples", config_name="basic_features"
         )
         results = feature_manager.compute_features(data)
         self.assertEqual(results["feature_c"], 25.0)  # 0.5 * (10 + 20 * 2)
@@ -38,7 +38,7 @@ class TestFeatureSet(unittest.TestCase):
             "feature_e": np.array(["orange"]),
         }
         feature_manager = FeatureManager(
-            config_path="../examples", config_name="basic_features"
+            config_path="./examples", config_name="basic_features"
         )
         results = feature_manager.compute_features(data)
         # Assertions for array results
