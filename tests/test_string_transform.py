@@ -40,7 +40,7 @@ class TestStringTransformations(unittest.TestCase):
         result = transform.execute(data)
         expected = np.array(["hello", "world"])
         assert_array_equal(result, expected)
-        
+
         transform = Strip(chars=".")
         data = np.array([".hello.", "world."])
         result = transform.execute(data)
