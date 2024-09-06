@@ -35,13 +35,20 @@ class TestStringTransformations(unittest.TestCase):
         self.assertEqual(result_single, expected_single)
 
     def test_strip(self):
-        transform = Strip(chars="*")
+        transform = Strip()
         data = np.array(["  hello  ", "  world  "])
         result = transform.execute(data)
         expected = np.array(["hello", "world"])
         assert_array_equal(result, expected)
 
+        transform = Strip(chars=".")
+        data = np.array([".hello.", "world."])
+        result = transform.execute(data)
+        expected = np.array(["hello", "world"])
+        assert_array_equal(result, expected)
+
         # Test with single string
+        transform = Strip()
         data_single = "  hello  "
         result_single = transform.execute(data_single)
         expected_single = "hello"

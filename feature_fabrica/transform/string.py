@@ -29,7 +29,7 @@ class Strip(Transformation):
 
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
-        return np.char.strip(data)
+        return np.char.strip(data, chars=self.chars)
 
 
 class Split(Transformation):
