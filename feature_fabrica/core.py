@@ -49,7 +49,7 @@ class Feature:
                 transformation_obj.compile(dependencies)
         return
 
-    @logger.catch
+    @logger.catch(reraise=True)
     def compute(self, value: Any = 0) -> np.ndarray:
         """Compute the feature value by applying its transformation.
 
@@ -153,7 +153,7 @@ class FeatureManager:
         self.features: edict = self._build_features()
         self.compile()
 
-    @logger.catch
+    @logger.catch(reraise=True)
     def _build_features(self) -> edict:
         """Builds features. Separates features into dependent_features and independent_features features.
 
@@ -183,7 +183,7 @@ class FeatureManager:
 
         return features
 
-    @logger.catch
+    @logger.catch(reraise=True)
     def compile(self):
         """Identifies feature dependencies and the order in which Features are visited and computed.
 

@@ -26,10 +26,10 @@ class ToUpper(Transformation):
 class Strip(Transformation):
     def __init__(self, chars: str | None = None):
         self.chars = chars
-
+ 
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
-        return np.char.strip(data)
+        return np.char.strip(data, chars=self.chars)
 
 
 class Split(Transformation):
