@@ -1,14 +1,10 @@
-from typing import Union
-
 import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from feature_fabrica.transform.base import Transformation
-
-StrArray = Union[NDArray[np.str_], np.ndarray]
-StrValue = Union[np.str_, str]
+from feature_fabrica.transform.utils import StrArray, StrValue
 
 
 class ToLower(Transformation):

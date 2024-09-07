@@ -1,83 +1,53 @@
 from collections.abc import Iterable
-from typing import Union
 
 import numpy as np
 from beartype import beartype
-from numpy.typing import NDArray
 
-from feature_fabrica.models import FeatureValue
 from feature_fabrica.transform.base import Transformation
-
-NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
-NumericValue = Union[np.floating, np.int_, float, int]
+from feature_fabrica.transform.utils import (
+    NumericArray, NumericValue, broadcast_and_normalize_numeric_array)
 
 
 class BaseReduce(Transformation):
-    def __init__(self, iterable: Iterable | None = None, axis: int = 0):
+    ufunc = None
+    def __init__(self, iterable: Iterable | None = None, expect_data: bool = False, axis: int = 0):
         super().__init__()
+
+        assert iterable or expect_data, "Either expect_data or iterable should be set!"
         self.iterable = iterable
         self.axis = axis
-        if self.iterable:
+        if not expect_data and self.iterable:
             self.execute = self.default  # type: ignore[method-assign]
-        else:
+        elif expect_data and not self.iterable:
             self.execute = self.with_data  # type: ignore[method-assign]
-
-    def default(self):
-        raise NotImplementedError()
-
+        elif expect_data and self.iterable:
+            self.execute = self.with_data_and_iterable # type: ignore[method-assign]
+    @beartype
+    def default(self) -> NumericArray | NumericValue:
+        if self.ufunc is None:
+            raise NotImplementedError()
+        iterable: NumericArray = broadcast_and_normalize_numeric_array(self.iterable)
+        return self.ufunc.reduce(iterable, axis=self.axis)
+    @beartype
     def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
-        raise NotImplementedError()
-
+        if self.ufunc is None:
+            raise NotImplementedError()
+        return self.ufunc.reduce(data, axis=self.axis)
+    @beartype
+    def with_data_and_iterable(self, data: NumericArray) -> NumericArray | NumericValue:
+        if self.ufunc is None:
+            raise NotImplementedError()
+        data_and_iterable: NumericArray = broadcast_and_normalize_numeric_array([data] + self.iterable)
+        return self.ufunc.reduce(data_and_iterable, axis=self.axis)
 
 class SumReduce(BaseReduce):
-    @beartype
-    def default(self) -> NumericArray | NumericValue:
-        # Normalize all elements to np.array
-        normalized_iterable = []
-        for element in self.iterable:  # type: ignore[union-attr]
-            if not isinstance(element, np.ndarray) and not isinstance(
-                element, FeatureValue
-            ):
-                element = np.array([element], dtype=np.float32)
-            normalized_iterable.append(element)
-        # Find the maximum shape among the elements
-        max_shape = np.broadcast_shapes(*[elem.shape for elem in normalized_iterable])
-
-        # Broadcast elements to the maximum shape
-        broadcasted_iterable = [
-            np.broadcast_to(elem, max_shape) for elem in normalized_iterable
-        ]
-        return np.add.reduce(broadcasted_iterable, axis=self.axis)
-
-    @beartype
-    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
-        return np.add.reduce(data, axis=self.axis)
-
+    ufunc = np.add
 
 class MultiplyReduce(BaseReduce):
-    @beartype
-    def default(self) -> NumericArray | NumericValue:
-        # Normalize all elements to np.array
-        normalized_iterable = []
-        for element in self.iterable:  # type: ignore[union-attr]
-            if not isinstance(element, np.ndarray) and not isinstance(
-                element, FeatureValue
-            ):
-                element = np.array([element], dtype=np.float32)
-            normalized_iterable.append(element)
-        # Find the maximum shape among the elements
-        max_shape = np.broadcast_shapes(*[elem.shape for elem in normalized_iterable])
+    ufunc = np.multiply
 
-        # Broadcast elements to the maximum shape
-        broadcasted_iterable = [
-            np.broadcast_to(elem, max_shape) for elem in normalized_iterable
-        ]
-        return np.multiply.reduce(broadcasted_iterable, axis=self.axis)
-
-    @beartype
-    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
-        return np.multiply.reduce(data, axis=self.axis)
-
+class SubtractReduce(BaseReduce):
+    ufunc = np.subtract
 
 class DivideTransform(Transformation):
     def __init__(
