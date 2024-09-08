@@ -3,8 +3,9 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from feature_fabrica.transform import (LabelEncode, OneHotEncode, Split, Strip,
-                                       ToLower, ToUpper)
+from feature_fabrica.transform import (ConcatenateReduce, LabelEncode,
+                                       OneHotEncode, Split, Strip, ToLower,
+                                       ToUpper)
 
 
 class TestStringTransformations(unittest.TestCase):
@@ -20,6 +21,27 @@ class TestStringTransformations(unittest.TestCase):
         result_single = transform.execute(data_single)
         expected_single = "hello"
         self.assertEqual(result_single, expected_single)
+
+    def test_concatenate_reduce(self):
+        array1 = np.array(['hello', 'good'])
+        array2 = np.array([' there', 'bye'])
+        array3 = np.array(['!', ' now'])
+
+        transform = ConcatenateReduce(iterable=[array1, array2, array3])
+        result = transform.execute()
+        expected = np.array(['hello there!', 'goodbye now'])
+        assert_array_equal(result, expected)
+
+        transform = ConcatenateReduce(iterable=[array2, array3], expects_data=True)
+        result = transform.execute(array1)
+        expected = np.array(['hello there!', 'goodbye now'])
+        assert_array_equal(result, expected)
+
+        stacked = np.stack([array1, array2, array3], axis=1)
+        transform = ConcatenateReduce(expects_data=True)
+        result = transform.execute(stacked)
+        expected = np.array(['hello there!', 'goodbye now'])
+        assert_array_equal(result, expected)
 
     def test_to_upper(self):
         transform = ToUpper()

@@ -14,7 +14,11 @@ class GroupByReduce(Transformation):
         self.axis = axis
     @beartype
     def execute(self, data: StrOrNumArray) -> StrOrNumArray:
+        """Groups data array by key_feature values and applies a reduction transformation.
 
+        Assigns reduced values to the original positions to preserve the original shape.
+        """
+        assert self.reduce_func.expects_data
         #assert isinstance(self.key_feature, FeatureValue), "key_feature must be an existing feature!"
         assert self.key_feature.shape == data.shape # type: ignore[attr-defined]
         key_feature = self.key_feature

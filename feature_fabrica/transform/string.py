@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+from functools import reduce
+
 import numpy as np
 from beartype import beartype
 from numpy.typing import NDArray
@@ -18,6 +21,29 @@ class ToUpper(Transformation):
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
         return np.char.upper(data)
 
+class ConcatenateReduce(Transformation):
+    def __init__(self, iterable: Iterable | None = None, expects_data: bool = False, axis: int=-1):
+        super().__init__()
+        assert iterable or expects_data, "Either expect_data or iterable should be set!"
+        self.iterable = iterable
+        self.axis = axis
+        if not expects_data and self.iterable:
+            self.execute = self.default  # type: ignore[method-assign]
+        elif expects_data and not self.iterable:
+            self.execute = self.with_data  # type: ignore[method-assign]
+        elif expects_data and self.iterable:
+            self.execute = self.with_data_and_iterable # type: ignore[method-assign]
+    @beartype
+    def default(self) -> StrArray:
+        return reduce(np.char.add, self.iterable) # type: ignore[arg-type]
+    @beartype
+    def with_data(self, data: StrArray) -> StrArray:
+        return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)
+    @beartype
+    def with_data_and_iterable(self, data: StrArray) -> StrArray:
+        # TODO: make the order configurable?
+        iterable_with_data = [data] + self.iterable # type: ignore[operator]
+        return reduce(np.char.add, iterable_with_data)
 
 class Strip(Transformation):
     def __init__(self, chars: str | None = None):

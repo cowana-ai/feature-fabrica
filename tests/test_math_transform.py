@@ -20,12 +20,12 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([5, 6, 7])
         assert_array_almost_equal(result, expected)
 
-        transform = SumReduce(expect_data=True)
+        transform = SumReduce(expects_data=True)
         result = transform.execute(np.array([1, 2, 3]))
         expected = np.array([6])
         assert_array_almost_equal(result, expected)
 
-        transform = SumReduce(iterable=[np.array([1, 2, 3]), 4], expect_data=True)
+        transform = SumReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
         result = transform.execute(np.array([1]))
         expected = np.array([6, 7, 8])
         assert_array_almost_equal(result, expected)
@@ -39,13 +39,13 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([2, 4, 6])
         assert_array_almost_equal(result, expected)
 
-        transform = MultiplyReduce(expect_data=True)
+        transform = MultiplyReduce(expects_data=True)
         transform.compile()
         result = transform.execute(np.array([1, 2, 3]))
         expected = np.array([6])
         assert_array_almost_equal(result, expected)
 
-        transform = MultiplyReduce(iterable=[np.array([1, 2, 3]), 4], expect_data=True)
+        transform = MultiplyReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
         result = transform.execute(np.array([1]))
         expected = np.array([4, 8, 12])
         assert_array_almost_equal(result, expected)
@@ -59,13 +59,13 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([-1, 0, 1])
         assert_array_almost_equal(result, expected)
 
-        transform = SubtractReduce(expect_data=True)
+        transform = SubtractReduce(expects_data=True)
         transform.compile()
         result = transform.execute(np.array([1, 2, 3]))
         expected = np.array([-4])
         assert_array_almost_equal(result, expected)
 
-        transform = SubtractReduce(iterable=[np.array([1, 2, 3]), 4], expect_data=True)
+        transform = SubtractReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
         result = transform.execute(np.array([1]))
         expected = np.array([-4, -5, -6])
         assert_array_almost_equal(result, expected)
