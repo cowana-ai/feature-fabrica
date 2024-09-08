@@ -33,7 +33,7 @@ class FeatureSpec(BaseModel):
 class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-arg]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    value: np.ndarray | PromiseValue | None = Field(default=None)
+    value: np.ndarray | PromiseValue = Field(default=None)
     data_type: str
 
     @root_validator(pre=True)
