@@ -6,8 +6,8 @@ from numpy.typing import NDArray
 
 from feature_fabrica.models import FeatureValue
 
-NumericArray = Union[NDArray[np.floating], NDArray[np.int_]]
-NumericValue = Union[np.floating, np.int_, float, int]
+NumericArray = Union[Union[NDArray[np.float32], NDArray[np.float64]], Union[NDArray[np.int32], NDArray[np.int64]]]
+NumericValue = Union[np.float32, np.float64, np.int32, np.int64, float, int]
 
 StrArray = Union[NDArray[np.str_], np.ndarray]
 StrValue = Union[np.str_, str]

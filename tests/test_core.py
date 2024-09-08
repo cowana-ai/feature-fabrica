@@ -16,9 +16,10 @@ class TestFeatureSet(unittest.TestCase):
 
     def test_compute_features_single_data(self):
         data = {
-            "feature_a": np.array([10], dtype=np.float32),
-            "feature_b": np.array([20], dtype=np.float32),
+            "feature_a": np.array([10], dtype=np.int32),
+            "feature_b": np.array([20], dtype=np.int32),
             "feature_e": np.array(["orange"]),
+            "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
             config_path="./examples", config_name="basic_features"
@@ -30,12 +31,14 @@ class TestFeatureSet(unittest.TestCase):
             feature_manager.features.feature_c.feature_value.value, 25.0
         )  # 0.5 * (10 + 20)
         np.testing.assert_array_equal(results.feature_e, np.array([[0, 1]]))
+        self.assertEqual(results["feature_f"], "orange")  # 0.5 * (10 + 20 * 2)
 
     def test_compute_features_array(self):
         data = {
-            "feature_a": np.array(list(range(100)), dtype=np.float32),
-            "feature_b": np.array(list(range(100, 200)), dtype=np.float32),
+            "feature_a": np.array(list(range(100)), dtype=np.int32),
+            "feature_b": np.array(list(range(100, 200)), dtype=np.int32),
             "feature_e": np.array(["orange"]),
+            "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
             config_path="./examples", config_name="basic_features"

@@ -1,5 +1,6 @@
 # models.py
 import hashlib
+import re
 from typing import Any, Optional
 
 import numpy as np
@@ -47,13 +48,21 @@ class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-ar
         expected_type = getattr(np, data_type, None)
 
         if expected_type is None:
-            raise ValueError(f"Unsupported data type '{data_type}'")
+            raise ValueError(f"Unsupported data type '{data_type}', use numpy typing!")
 
         # Validate that the array has the correct data type
-        if v.dtype.type != expected_type:
+        actual_type_name = v.dtype.name
+        actual_type, actual_precision = re.findall(r'\D+|\d+', actual_type_name)
+
+        expected_type_list = re.findall(r'\D+|\d+', data_type)
+
+        if actual_type not in data_type:
             raise ValueError(
                 f"Array dtype '{v.dtype}' does not match expected type '{data_type}'"
             )
+        elif len(expected_type_list) > 1 and actual_precision != expected_type_list[1]:
+            # convert to desired type if compatible
+            v = v.astype(expected_type)
 
         # Update the value in the values dictionary
         values["value"] = v
