@@ -55,6 +55,7 @@ class DivideTransform(Transformation):
         numerator: str | float | None = None,
         denominator: str | float | None = None,
     ):
+        super().__init__()
         assert (
             numerator or denominator
         ), "You have to pass either numerator or denominator for computation!"
@@ -124,6 +125,7 @@ class PowerTransform(Transformation):
 
 class ZScoreTransform(Transformation):
     def __init__(self, mean: float, std_dev: float):
+        super().__init__()
         self.mean = mean
         self.std_dev = std_dev
 
@@ -134,6 +136,7 @@ class ZScoreTransform(Transformation):
 
 class ClipTransform(Transformation):
     def __init__(self, min: float, max: float):
+        super().__init__()
         self.min = min
         self.max = max
 
@@ -144,6 +147,7 @@ class ClipTransform(Transformation):
 
 class MinMaxTransform(Transformation):
     def __init__(self, min: float, max: float):
+        super().__init__()
         self.min = min
         self.max = max
 
