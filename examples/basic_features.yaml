@@ -1,7 +1,7 @@
 # examples/basic_features.yaml
 feature_a:
   description: "Raw feature A"
-  data_type: "float32"
+  data_type: "int32"
 
 feature_b:
   description: "Raw feature B"
@@ -9,7 +9,7 @@ feature_b:
   transformation:
     scale_feature:
       _target_: feature_fabrica.transform.ScaleFeature
-      factor: 2
+      factor: 2.
 
 feature_d:
   description: "Derived feature D"
@@ -42,3 +42,10 @@ feature_e:
     one_hot:
       _target_: feature_fabrica.transform.OneHotEncode
       categories: ["apple", "orange"]
+
+feature_f:
+  description: "Raw feature F"
+  data_type: "str_"
+  transformation:
+    strip:
+      _target_: feature_fabrica.transform.Strip

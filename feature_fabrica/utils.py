@@ -1,45 +1,51 @@
 # utils.py
 import sys
 
+from beartype import beartype
 from loguru import logger
 
 from feature_fabrica.exceptions import CyclicDependencyError
 
 logger_set = False
 
-
-def setup_logger():
+@beartype
+def setup_logger(
+    log_format: str = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+                      "<level>{level: <8}</level> | "
+                      "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+                      "<level>{message}</level>",
+    log_level: str = "DEBUG",
+    log_file: str | None = None,
+    log_rotation: str | None = None,
+    log_retention: str | None = None,
+    log_compression: str | None = None,
+    colorize_stdout: bool = True
+):
     global logger_set
-    # TODO: configurable
-    # Configuration settings
-    LOG_FORMAT = (
-        "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
-        "<level>{level: <8}</level> | "
-        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
-        "<level>{message}</level>"
-    )
-
-    LOG_LEVEL = "DEBUG"
-    # LOG_FILE = "app.log"
-    # LOG_ROTATION = "1 week"  # Log rotation interval
-    # LOG_RETENTION = "10 days"  # Log retention duration
-    # LOG_COMPRESSION = "zip"  # Compression type for rotated logs
 
     # Remove the default logger
     logger.remove()
 
     # Add stdout with formatting and color
-    logger.add(sys.stdout, format=LOG_FORMAT, level=LOG_LEVEL, colorize=True)
+    logger.add(sys.stdout, format=log_format, level=log_level, colorize=colorize_stdout)
 
-    # Add file handler without color (colors don't make sense in a file)
-    # logger.add(LOG_FILE, format=LOG_FORMAT.replace('<level>', '').replace('</level>', ''),
-    #           level=LOG_LEVEL, rotation=LOG_ROTATION, retention=LOG_RETENTION, compression=LOG_COMPRESSION)
+    # Add file handler if log_file is provided
+    if log_file:
+        logger.add(
+            log_file,
+            format=log_format.replace('<level>', '').replace('</level>', ''),
+            level=log_level,
+            rotation=log_rotation,
+            retention=log_retention,
+            compression=log_compression,
+        )
+
     logger_set = True
 
 
-def get_logger():
+def get_logger(**kwargs):
     if not logger_set:
-        setup_logger()
+        setup_logger(**kwargs)
     return logger
 
 
