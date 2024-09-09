@@ -124,15 +124,26 @@ class PowerTransform(Transformation):
 
 
 class ZScoreTransform(Transformation):
-    def __init__(self, mean: float, std_dev: float):
+    def __init__(self, mean: float | None = None, std_dev: float | None = None, axis: int = -1):
         super().__init__()
         self.mean = mean
         self.std_dev = std_dev
+        self.axis = axis
 
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
-        return (data - self.mean) / self.std_dev
+        if self.mean is not None and self.std_dev is not None:
+            z_normalized = (data - self.mean) / self.std_dev
+        else:
+            # Calculate mean of the data
+            mean = np.mean(data, axis=self.axis, keepdims=True)
 
+            # Calculate the standard deviation of the data
+            std_dev = np.std(data, axis=self.axis, keepdims=True)
+
+            # Apply Z-score normalization
+            z_normalized = (data - mean) / std_dev
+        return z_normalized
 
 class ClipTransform(Transformation):
     def __init__(self, min: float, max: float):
@@ -146,11 +157,25 @@ class ClipTransform(Transformation):
 
 
 class MinMaxTransform(Transformation):
-    def __init__(self, min: float, max: float):
+    def __init__(self, min: float | None = None, max: float | None = None, axis: int = -1):
         super().__init__()
+        if min is not None and max is not None:
+            assert min != max
         self.min = min
         self.max = max
+        self.axis = axis
 
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
-        return (data - self.min) / (self.max - self.min)
+        if self.min is not None and self.max is not None:
+            min_max_normalized = (data - self.min) / (self.max - self.min)
+        else:
+            # Calculate min of the data
+            min_ = np.min(data, axis=self.axis, keepdims=True)
+
+            # Calculate max of the data
+            max_ = np.max(data, axis=self.axis, keepdims=True)
+
+            # Apply MinMax normalization
+            min_max_normalized = (data - min_) / (max_ - min_)
+        return min_max_normalized
