@@ -40,7 +40,7 @@ DEAFULT_REDUCTIONS = dict(
 class GroupByReduce(Transformation):
     @beartype
     def __init__(self, key_feature: str, reduce_func: Transformation | str = "mean", axis: int = -1):
-
+        super().__init__()
         if isinstance(reduce_func, str):
             assert reduce_func in ["mean", "mode", "min", "max", "median"]
             reduce_func = DEAFULT_REDUCTIONS[reduce_func]
@@ -58,6 +58,7 @@ class GroupByReduce(Transformation):
             assert self.reduce_func.expects_data
         #assert isinstance(self.key_feature, FeatureValue), "key_feature must be an existing feature!"
         assert self.key_feature.shape == data.shape # type: ignore[attr-defined]
+        # FeatureValue has weird behavior with np.unique
         key_feature_value = self.key_feature.value # type: ignore[attr-defined]
 
         sorted_idxs = key_feature_value.argsort() # type: ignore[attr-defined]
