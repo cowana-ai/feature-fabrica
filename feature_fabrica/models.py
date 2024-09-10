@@ -71,7 +71,7 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
         # Automatically converts to np.ndarray when passed to a function that expects an array
         if dtype:
             return self.value.astype(dtype)
-        return self.value
+        return self.value.copy() if copy else self.value
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         # Convert inputs to their underlying values if they are FeatureValue instances
