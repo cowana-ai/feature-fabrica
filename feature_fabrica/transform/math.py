@@ -29,10 +29,22 @@ class BaseReduce(Transformation):
         iterable: NumericArray = broadcast_and_normalize_numeric_array(self.iterable)
         return self.ufunc.reduce(iterable, axis=self.axis)
     @beartype
-    def with_data(self, data: NumericArray) -> NumericArray | NumericValue:
+    def with_data(self, data: NumericArray | list[NumericArray]) -> NumericArray | NumericValue:
         if self.ufunc is None:
             raise NotImplementedError()
-        return self.ufunc.reduce(data, axis=self.axis)
+        if isinstance(data, np.ndarray):
+            return self.ufunc.reduce(data, axis=self.axis)
+        else:
+            # Flatten the input arrays into a single contiguous array
+            cells_flat = np.concatenate(data)
+
+            # Compute the lengths and starting positions of each array
+            cell_lengths = np.array([len(arr) for arr in data])
+            cell_starts = np.insert(np.cumsum(cell_lengths[:-1]), 0, 0)
+
+            # Apply the reduceat function using the starting positions
+            return self.ufunc.reduceat(cells_flat, cell_starts)
+
     @beartype
     def with_data_and_iterable(self, data: NumericArray) -> NumericArray | NumericValue:
         if self.ufunc is None:

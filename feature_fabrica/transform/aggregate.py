@@ -65,16 +65,18 @@ class GroupByReduce(Transformation):
         data_sorted = data[sorted_idxs]
         key_feature_sorted = key_feature_value[sorted_idxs]
 
-        data_aggregated =  np.split(data_sorted, np.unique(key_feature_sorted, return_index=True)[1][1:])
+        _, unqiue_indeces, counts = np.unique(key_feature_sorted, return_index=True, return_counts=True)
+        data_aggregated =  np.split(data_sorted, unqiue_indeces[1:])
 
-        data_aggregated = np.array(data_aggregated, dtype=data.dtype)
+        if np.all(counts == counts[0]):
+            data_aggregated = np.array(data_aggregated, dtype=data.dtype)
+
         if isinstance(self.reduce_func, Transformation):
             data_reduced = self.reduce_func.execute(data_aggregated)
         else:
             data_reduced = self.reduce_func(data_aggregated, self.axis) # type: ignore[operator]
         # Use np.unique to find the unique key values and the counts for each
         _, inverse_indices = np.unique(key_feature_value, return_inverse=True)
-
         # Use np.repeat to assign the reduced values to the original positions
         result = data_reduced[inverse_indices]
 

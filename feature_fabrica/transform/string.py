@@ -38,8 +38,9 @@ class ConcatenateReduce(Transformation):
         return reduce(np.char.add, self.iterable) # type: ignore[arg-type]
 
     @beartype
-    def with_data(self, data: StrArray) -> StrArray:
+    def with_data(self, data: StrArray | list[StrArray]) -> StrArray:
         return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)
+
     @beartype
     def with_data_and_iterable(self, data: StrArray) -> StrArray:
         # TODO: make the order configurable?
