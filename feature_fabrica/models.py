@@ -88,6 +88,9 @@ class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-ar
             return self.value / other.value
         return self.value / other
 
+    def __getitem__(self, idx):
+        return self.value[idx]
+
     def __getattr__(self, name):
         # Delegate attribute access to the `value` attribute
         return getattr(self.value, name)

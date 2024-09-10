@@ -62,6 +62,7 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(
             feature_manager.features.feature_c.feature_value.value, expected_values
         )
+        np.testing.assert_array_equal(feature_manager.features.feature_c.feature_value[[25,30]], expected_values[[25,30]])
 
 
 if __name__ == "__main__":
