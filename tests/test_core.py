@@ -37,7 +37,7 @@ class TestFeatureSet(unittest.TestCase):
         data = {
             "feature_a": np.array(list(range(100)), dtype=np.int32),
             "feature_b": np.array(list(range(100, 200)), dtype=np.int32),
-            "feature_e": np.array(["orange"]),
+            "feature_e": np.array(["Orange"]),
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
@@ -45,25 +45,36 @@ class TestFeatureSet(unittest.TestCase):
         )
         results = feature_manager.compute_features(data)
         # Assertions for array results
-        expected_values = 0.5 * (
+        expected_feature_c = 0.5 * (
             np.array(data["feature_a"]) + np.array(data["feature_b"]) * 2
         )
+        expected_feature_f = np.array(["orange"])
+        expected_feature_e_original = np.array(["Orange"])
+        expected_feature_e_lower = np.array(["orange"])
+        expected_feature_e = np.array([[0, 1]], dtype=np.int32)
 
-        # Assert that the result is an array
+        # Assert feature c
         self.assertIsInstance(results["feature_c"], np.ndarray)
         self.assertIsInstance(results.feature_c, np.ndarray)
         self.assertIsInstance(
             feature_manager.features.feature_c.feature_value.value, np.ndarray
         )
+        np.testing.assert_array_equal(results["feature_c"], expected_feature_c)
+        np.testing.assert_array_equal(results.feature_c, expected_feature_c)
 
-        # Assert that the array has the expected values
-        np.testing.assert_array_equal(results["feature_c"], expected_values)
-        np.testing.assert_array_equal(results.feature_c, expected_values)
+        # Assert feature_f
+        np.testing.assert_array_equal(results["feature_f"], expected_feature_f)
+
+        # Assert feature_e's
+        np.testing.assert_array_equal(results["feature_e_original"], expected_feature_e_original)
+        np.testing.assert_array_equal(results["feature_e_lower"], expected_feature_e_lower)
+        np.testing.assert_array_equal(results["feature_e"], expected_feature_e)
+
+        # Assert FeatureValue
         np.testing.assert_array_equal(
-            feature_manager.features.feature_c.feature_value.value, expected_values
+            feature_manager.features.feature_c.feature_value.value, expected_feature_c
         )
-        np.testing.assert_array_equal(feature_manager.features.feature_c.feature_value[[25,30]], expected_values[[25,30]])
-
+        np.testing.assert_array_equal(feature_manager.features.feature_c.feature_value[[25, 30]], expected_feature_c[[25, 30]])
 
 if __name__ == "__main__":
     unittest.main()
