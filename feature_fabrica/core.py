@@ -107,6 +107,7 @@ class Feature:
         self.computed = True
         return self.feature_value.value  # type: ignore[attr-defined]
 
+    @logger.catch(reraise=True)
     def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
         # hooks on initial data
         for hook in self._before_compute_hooks:
