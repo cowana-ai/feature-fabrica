@@ -39,6 +39,10 @@ feature_e:
   description: "Raw feature E"
   data_type: "int32"
   transformation:
+    upper:
+      _target_: feature_fabrica.transform.ToUpper
+    lower:
+      _target_: feature_fabrica.transform.ToLower
     one_hot:
       _target_: feature_fabrica.transform.OneHotEncode
       categories: ["apple", "orange"]
@@ -49,3 +53,32 @@ feature_f:
   transformation:
     strip:
       _target_: feature_fabrica.transform.Strip
+
+feature_e_original:
+  description: "Original value of feature E"
+  data_type: "str_"
+  dependencies: ["feature_e"]
+  transformation:
+    import:
+      _target_: feature_fabrica.transform.FeatureImporter
+      feature: feature_e
+
+feature_e_lower:
+  description: "Value of feature E before one hot encoding"
+  data_type: "str_"
+  dependencies: ["feature_e"]
+  transformation:
+    import:
+      _target_: feature_fabrica.transform.FeatureImporter
+      feature: feature_e
+      transform_stage: lower
+
+feature_e_upper:
+  description: "Value of feature E uppercased"
+  data_type: "str_"
+  dependencies: ["feature_e"]
+  transformation:
+    import:
+      _target_: feature_fabrica.transform.FeatureImporter
+      feature: feature_e
+      transform_stage: upper

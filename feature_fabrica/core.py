@@ -1,7 +1,7 @@
 # core.py
 import concurrent.futures
 from collections import defaultdict
-from typing import Any
+from collections.abc import Callable
 
 import numpy as np
 from beartype import BeartypeConf, BeartypeStrategy, beartype
@@ -38,7 +38,14 @@ class Feature:
         self.transformation_chain_head = THead()
         self.transformation_ptr = self.transformation_chain_head
 
+        self._export_to_features = defaultdict(list) # type: ignore[var-annotated]
+        if self.transformation:
+            for transformation_name in self.transformation.keys():
+                self._export_to_features[transformation_name]
+
         self.computed = False
+        self._before_compute_hooks: list[Callable] = []
+        self._after_compute_hooks: list[Callable] = []
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         if self.transformation:
@@ -47,10 +54,11 @@ class Feature:
                 transformation_obj,
             ) in self.transformation.items():
                 transformation_obj.compile(dependencies)
+
         return
 
     @logger.catch(reraise=True)
-    def compute(self, value: Any = 0) -> np.ndarray:
+    def compute(self, value: np.ndarray | None = None) -> np.ndarray:
         """Compute the feature value by applying its transformation.
 
         Parameters
@@ -72,10 +80,15 @@ class Feature:
                     transformation_obj,
                 ) in self.transformation.items():
                     if transformation_obj.expects_data:
+                        assert prev_value is not None
                         result_dict = transformation_obj(prev_value)
                     else:
                         result_dict = transformation_obj()
                     prev_value = result_dict.value
+
+                    if self._export_to_features:
+                        self.export_to_features(value=result_dict.value, transformation_name=transformation_name)
+
                     if self.log_transformation_chain:
                         self.update_transformation_chain(
                             transformation_name, result_dict
@@ -93,6 +106,22 @@ class Feature:
         self.feature_value.value = value
         self.computed = True
         return self.feature_value.value  # type: ignore[attr-defined]
+
+    @logger.catch(reraise=True)
+    def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
+        # hooks on initial data
+        for hook in self._before_compute_hooks:
+            hook(data=value)
+        result = self.compute(value)
+        # hooks on final data
+        for hook in self._after_compute_hooks:
+            hook(data=result)
+        return result
+
+    def export_to_features(self, value: np.ndarray, transformation_name: str):
+        if self._export_to_features[transformation_name]:
+            for feature_importer in self._export_to_features[transformation_name]:
+                feature_importer.pass_data(value)
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
@@ -287,9 +316,9 @@ class FeatureManager:
 
     def compute_single_feature(self, feature: Feature, value: np.ndarray | None = None):
         if value is not None:
-            result = feature.compute(value=value)
+            result = feature(value=value)
         else:
-            result = feature.compute()
+            result = feature()
         return feature.name, result
 
     @slowmobeartype

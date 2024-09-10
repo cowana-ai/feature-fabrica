@@ -30,7 +30,7 @@ class FeatureSpec(BaseModel):
         return v
 
 
-class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-arg]
+class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assignment=True):  # type: ignore[call-arg]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     value: np.ndarray | PromiseValue = Field(default=None)
@@ -40,7 +40,6 @@ class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-ar
     def validate_value(cls, values):
         v = values.get("value")
         data_type = values.get("data_type")
-
         # allow PromiseValue only
         if isinstance(v, PromiseValue):
             return values
@@ -68,33 +67,35 @@ class FeatureValue(BaseModel, validate_assignment=True):  # type: ignore[call-ar
         values["value"] = v
         return values
 
-    def __add__(self, other):
-        if isinstance(other, FeatureValue):
-            return self.value + other.value
-        return self.value + other
+    def __array__(self, dtype=None, copy=None):
+        # Automatically converts to np.ndarray when passed to a function that expects an array
+        if dtype:
+            return self.value.astype(dtype)
+        return self.value.copy() if copy else self.value
 
-    def __sub__(self, other):
-        if isinstance(other, FeatureValue):
-            return self.value - other.value
-        return self.value - other
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        # Convert inputs to their underlying values if they are FeatureValue instances
+        inputs = tuple(x.value if isinstance(x, FeatureValue) else x for x in inputs)
 
-    def __mul__(self, other):
-        if isinstance(other, FeatureValue):
-            return self.value * other.value
-        return self.value * other
+        # Perform the operation using the ufunc
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+        return result
 
-    def __truediv__(self, other):
-        if isinstance(other, FeatureValue):
-            return self.value / other.value
-        return self.value / other
+    def __array_function__(self, func, types, args, kwargs):
+        # Convert args to their underlying values if they are FeatureValue instances
+        args = tuple(x.value if isinstance(x, FeatureValue) else x for x in args)
+        # Perform the operation using the function
+        result = func(*args, **kwargs)
+        return result
+
+    def __getitem__(self, idx):
+        return self.value[idx]
 
     def __getattr__(self, name):
-        # Delegate attribute access to the `value` attribute
         return getattr(self.value, name)
 
     def __repr__(self):
         return f"FeatureValue(value={self.value})"
-
 
 class TNode(BaseModel):
     transformation_name: str

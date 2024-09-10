@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+from feature_fabrica.models import FeatureValue
 from feature_fabrica.transform import (BinaryEncode, ConcatenateReduce,
                                        LabelEncode, OneHotEncode,
                                        OrdinalEncode, Split, Strip, ToLower,
@@ -28,7 +29,7 @@ class TestStringTransformations(unittest.TestCase):
         array2 = np.array([' there', 'bye'])
         array3 = np.array(['!', ' now'])
 
-        transform = ConcatenateReduce(iterable=[array1, array2, array3])
+        transform = ConcatenateReduce(iterable=[FeatureValue(value=array1, data_type='str_'), array2, array3])
         result = transform.execute()
         expected = np.array(['hello there!', 'goodbye now'])
         assert_array_equal(result, expected)
