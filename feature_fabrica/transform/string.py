@@ -36,6 +36,7 @@ class ConcatenateReduce(Transformation):
     @beartype
     def default(self) -> StrArray:
         return reduce(np.char.add, self.iterable) # type: ignore[arg-type]
+
     @beartype
     def with_data(self, data: StrArray) -> StrArray:
         return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)

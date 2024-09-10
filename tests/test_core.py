@@ -51,6 +51,7 @@ class TestFeatureSet(unittest.TestCase):
         expected_feature_f = np.array(["orange"])
         expected_feature_e_original = np.array(["Orange"])
         expected_feature_e_lower = np.array(["orange"])
+        expected_feature_e_upper = np.array(["ORANGE"])
         expected_feature_e = np.array([[0, 1]], dtype=np.int32)
 
         # Assert feature c
@@ -68,6 +69,7 @@ class TestFeatureSet(unittest.TestCase):
         # Assert feature_e's
         np.testing.assert_array_equal(results["feature_e_original"], expected_feature_e_original)
         np.testing.assert_array_equal(results["feature_e_lower"], expected_feature_e_lower)
+        np.testing.assert_array_equal(results["feature_e_upper"], expected_feature_e_upper)
         np.testing.assert_array_equal(results["feature_e"], expected_feature_e)
 
         # Assert FeatureValue
