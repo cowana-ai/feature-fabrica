@@ -33,13 +33,17 @@ class ConcatenateReduce(Transformation):
             self.execute = self.with_data  # type: ignore[method-assign]
         elif expects_data and self.iterable:
             self.execute = self.with_data_and_iterable # type: ignore[method-assign]
+
     @beartype
     def default(self) -> StrArray:
         return reduce(np.char.add, self.iterable) # type: ignore[arg-type]
 
     @beartype
     def with_data(self, data: StrArray | list[StrArray]) -> StrArray:
-        return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)
+        if isinstance(data, np.ndarray):
+            return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)
+        else:
+            return np.array([reduce(np.char.add, arr) for arr in data], dtype=str)
 
     @beartype
     def with_data_and_iterable(self, data: StrArray) -> StrArray:

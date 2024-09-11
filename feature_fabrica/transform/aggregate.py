@@ -7,27 +7,48 @@ from feature_fabrica.transform.utils import NumericArray, StrOrNumArray
 
 
 @beartype
-def mean_reduction(data: NumericArray, axis: int) -> NumericArray:
-    return np.mean(data, axis=axis)
+def mean_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:
+    if isinstance(data, np.ndarray):
+        return np.mean(data, axis=axis)
+    else:
+        # Flatten the input arrays into a single contiguous array
+        cells_flat = np.concatenate(data)
+
+        # Compute the lengths and starting positions of each array
+        cell_lengths = np.array([len(arr) for arr in data])
+        cell_starts = np.insert(np.cumsum(cell_lengths[:-1]), 0, 0)
+        return np.add.reduceat(cells_flat, cell_starts) / cell_lengths
 
 @beartype
-def min_reduction(data: NumericArray, axis: int) -> NumericArray:
-    return np.min(data, axis=axis)
+def min_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:
+    if isinstance(data, np.ndarray):
+        return np.min(data, axis=axis)
+    else:
+        return np.array([np.min(arr) for arr in data], dtype=float)
 
 @beartype
-def max_reduction(data: NumericArray, axis: int) -> NumericArray:
-    return np.max(data, axis=axis)
+def max_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:
+    if isinstance(data, np.ndarray):
+        return np.max(data, axis=axis)
+    else:
+        return np.array([np.max(arr) for arr in data], dtype=float)
 
 @beartype
-def median_reduction(data: NumericArray, axis: int) -> NumericArray:
-    return np.median(data, axis=axis)
+def median_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:
+    if isinstance(data, np.ndarray):
+        return np.median(data, axis=axis)
+    else:
+        return np.array([np.median(arr) for arr in data], dtype=float)
 
 @beartype
-def mode_reduction(data: NumericArray, axis: int) -> NumericArray:
-    # use LabelEncode on your feature first: https://github.com/scipy/scipy/issues/15551
-    mode_result = stats.mode(data, axis=axis)
-    # Extract the mode from the result
-    return mode_result.mode
+def mode_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:
+    if isinstance(data, np.ndarray):
+        # use LabelEncode on your feature first: https://github.com/scipy/scipy/issues/15551
+        mode_result = stats.mode(data, axis=axis)
+        # Extract the mode from the result
+        return mode_result.mode
+    else:
+        return np.array([stats.mode(arr, axis=-1).mode for arr in data], dtype=float)
 
 DEAFULT_REDUCTIONS = dict(
         mean = mean_reduction,
