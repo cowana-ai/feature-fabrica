@@ -25,12 +25,16 @@ class FeatureImporter(Transformation):
 
     @beartype
     def compile(self, features: dict[str, Feature]) -> bool:
-        assert self.feature in features
+        if self.feature not in features:
+            raise ValueError(f"Feature '{self.feature}' not found.")
+
+        feature_obj = features[self.feature]
         if self.transform_stage is not None:
-            assert self.transform_stage in features[self.feature].transformation
-            features[self.feature]._export_to_features[self.transform_stage].append(self)
+            if self.transform_stage not in feature_obj.transformation:
+                raise ValueError(f"Transform stage '{self.transform_stage}' not found in feature '{self.feature}'.")
+            feature_obj._export_to_features[self.transform_stage].append(self)
         else:
-            features[self.feature]._before_compute_hooks.append(self.pass_data)
+            feature_obj._before_compute_hooks.append(self.pass_data)
         return False
 
     @beartype
@@ -39,6 +43,6 @@ class FeatureImporter(Transformation):
 
     @beartype
     def execute(self) -> StrOrNumArray:
-        if isinstance(self.data, FeatureValue):
-            return self.data.value
-        return self.data
+        if self.data is None:
+            raise ValueError("Data has not been set.")
+        return self.data.value if isinstance(self.data, FeatureValue) else self.data

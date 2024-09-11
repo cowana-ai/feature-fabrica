@@ -147,6 +147,7 @@ class ZScoreTransform(Transformation):
         if self.mean is not None and self.std_dev is not None:
             z_normalized = (data - self.mean) / self.std_dev
         else:
+            assert isinstance(data, np.ndarray), "data must be array"
             # Calculate mean of the data
             mean = np.mean(data, axis=self.axis, keepdims=True)
 
@@ -182,6 +183,7 @@ class MinMaxTransform(Transformation):
         if self.min is not None and self.max is not None:
             min_max_normalized = (data - self.min) / (self.max - self.min)
         else:
+            assert isinstance(data, np.ndarray), "data must be array"
             # Calculate min of the data
             min_ = np.min(data, axis=self.axis, keepdims=True)
 
