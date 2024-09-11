@@ -80,7 +80,6 @@ class Feature:
                     transformation_obj,
                 ) in self.transformation.items():
                     if transformation_obj.expects_data:
-                        assert prev_value is not None
                         result_dict = transformation_obj(prev_value)
                     else:
                         result_dict = transformation_obj()
@@ -95,8 +94,9 @@ class Feature:
                         )
 
             except Exception as e:
-                transformation_chain_str = self.get_transformation_chain()
-                logger.debug(transformation_chain_str)
+                if self.log_transformation_chain:
+                    transformation_chain_str = self.get_transformation_chain()
+                    logger.debug(transformation_chain_str)
                 logger.error(
                     f"An error occurred during the transformation {transformation_name}: {e}"
                 )
@@ -119,9 +119,11 @@ class Feature:
         return result
 
     def export_to_features(self, value: np.ndarray, transformation_name: str):
-        if self._export_to_features[transformation_name]:
-            for feature_importer in self._export_to_features[transformation_name]:
+        feature_importers = self._export_to_features.get(transformation_name, [])
+        if feature_importers:
+            for feature_importer in feature_importers:
                 feature_importer.pass_data(value)
+
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
