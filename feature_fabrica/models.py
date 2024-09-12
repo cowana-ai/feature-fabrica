@@ -3,12 +3,16 @@ import hashlib
 from typing import Any, Optional
 
 import numpy as np
+from beartype import beartype
 from pydantic import BaseModel, ConfigDict, Field, root_validator, validator
 
 
-class PromiseValue:
+class PromiseValue(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     value: np.ndarray | None = None
-
+    @beartype
+    def __call__(self, data: np.ndarray):
+        self.value = data
 
 class FeatureSpec(BaseModel):
     description: str

@@ -1,7 +1,7 @@
 from beartype import beartype
 
 from feature_fabrica.core import Feature
-from feature_fabrica.models import FeatureValue
+from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import StrOrNumArray
 
@@ -21,7 +21,7 @@ class FeatureImporter(Transformation):
         super().__init__()
         self.feature = feature
         self.transform_stage = transform_stage
-        self.data = None
+        self.data = PromiseValue()
 
     @beartype
     def compile(self, features: dict[str, Feature]) -> bool:
@@ -32,17 +32,13 @@ class FeatureImporter(Transformation):
         if self.transform_stage is not None:
             if self.transform_stage not in feature_obj.transformation:
                 raise ValueError(f"Transform stage '{self.transform_stage}' not found in feature '{self.feature}'.")
-            feature_obj._export_to_features[self.transform_stage].append(self)
+            feature_obj._export_to_features[self.transform_stage].append(self.data)
         else:
-            feature_obj._before_compute_hooks.append(self.pass_data)
+            feature_obj._before_compute_hooks.append(self.data)
         return False
 
     @beartype
-    def pass_data(self, data: StrOrNumArray) -> None:
-        self.data = data
-
-    @beartype
     def execute(self) -> StrOrNumArray:
-        if self.data is None:
+        if self.data.value is None:
             raise ValueError("Data has not been set.")
-        return self.data.value if isinstance(self.data, FeatureValue) else self.data
+        return self.data.value
