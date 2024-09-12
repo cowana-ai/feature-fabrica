@@ -36,8 +36,9 @@ ______________________________________________________________________
 
 To install **Feature Fabrica**, simply run:
 
-````bash
+```bash
 pip install feature-fabrica
+```
 
 ### **Defining Features in YAML**
 
@@ -64,7 +65,7 @@ feature_c:
       _target_: feature_fabrica.transform.ScaleFeature
       factor: 0.5
 
-````
+```
 
 ### **Creating and Using Transformations**
 
