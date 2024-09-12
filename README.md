@@ -1,5 +1,5 @@
 <h4 align="center">
-    <img alt="Feature Fabrica logo" src="https://github.com/cowana-ai/feature-fabrica/blob/main/media/current_logo.png" style="width: 100%;">
+    <img alt="Feature Fabrica logo" src="https://github.com/cowana-ai/feature-fabrica/blob/main/media/current_logo_transparent.png" style="width: 100%;">
 </h4>
 
 # ⚙️ The Framework to Simplify and Scale Feature Engineering ⚙️
