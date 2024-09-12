@@ -1,3 +1,5 @@
+![current_logo.png](media/current_logo.png)
+
 # ⚙️ The Framework to Simplify and Scale Feature Engineering ⚙️
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1O9i-g3vmxyazwdadTVjgBlY1GFN4f7Xt?usp=sharing)
