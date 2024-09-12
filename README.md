@@ -2,15 +2,18 @@
     <img alt="Feature Fabrica logo" src="https://github.com/cowana-ai/feature-fabrica/blob/main/media/current_logo_transparent.png" style="width: 100%;">
 </h4>
 
-# ⚙️ The Framework to Simplify and Scale Feature Engineering ⚙️
-
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1O9i-g3vmxyazwdadTVjgBlY1GFN4f7Xt?usp=sharing)
-
-![PyPI version](https://img.shields.io/pypi/v/feature-fabrica?style=flat-square)
-![Stars](https://img.shields.io/github/stars/cowana-ai/feature-fabrica?style=flat-square)
-![Issues](https://img.shields.io/github/issues/cowana-ai/feature-fabrica?style=flat-square)
-![License](https://img.shields.io/github/license/cowana-ai/feature-fabrica?style=flat-square)
-![Contributors](https://img.shields.io/github/contributors/cowana-ai/feature-fabrica?style=flat-square)
+<p align="center">
+  <h1>⚙️ The Framework to Simplify and Scale Feature Engineering ⚙️</h1>
+  <a href="https://colab.research.google.com/drive/1O9i-g3vmxyazwdadTVjgBlY1GFN4f7Xt?usp=sharing">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/>
+  </a>
+  <br/>
+  <img src="https://img.shields.io/pypi/v/feature-fabrica?style=flat-square" alt="PyPI version"/>
+  <img src="https://img.shields.io/github/stars/cowana-ai/feature-fabrica?style=flat-square" alt="Stars"/>
+  <img src="https://img.shields.io/github/issues/cowana-ai/feature-fabrica?style=flat-square" alt="Issues"/>
+  <img src="https://img.shields.io/github/license/cowana-ai/feature-fabrica?style=flat-square" alt="License"/>
+  <img src="https://img.shields.io/github/contributors/cowana-ai/feature-fabrica?style=flat-square" alt="Contributors"/>
+</p>
 
 For **data scientists, ML engineers**, and **AI researchers** who want to simplify feature engineering, manage complex dependencies, and boost productivity.
 
