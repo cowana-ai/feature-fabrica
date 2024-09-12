@@ -41,7 +41,7 @@ class ConcatenateReduce(Transformation):
     @beartype
     def with_data(self, data: StrArray | list[StrArray]) -> StrArray:
         if isinstance(data, np.ndarray):
-            return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=-1, arr=data)
+            return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=self.axis, arr=data)
         else:
             return np.array([reduce(np.char.add, arr) for arr in data], dtype=str)
 
