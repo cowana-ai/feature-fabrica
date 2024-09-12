@@ -38,10 +38,7 @@ class Feature:
         self.transformation_chain_head = THead()
         self.transformation_ptr = self.transformation_chain_head
 
-        self._export_to_features = defaultdict(list) # type: ignore[var-annotated]
-        if self.transformation:
-            for transformation_name in self.transformation.keys():
-                self._export_to_features[transformation_name]
+        self._export_to_features: dict[str, list[PromiseValue]] = defaultdict(list)
 
         self.computed = False
         self._before_compute_hooks: list[Callable] = []
@@ -118,11 +115,12 @@ class Feature:
             hook(data=result)
         return result
 
+    @beartype
     def export_to_features(self, value: np.ndarray, transformation_name: str):
-        feature_importers = self._export_to_features.get(transformation_name, [])
-        if feature_importers:
-            for feature_importer in feature_importers:
-                feature_importer.pass_data(value)
+        promised_values: list[PromiseValue] = self._export_to_features.get(transformation_name, [])
+        if promised_values:
+            for promise_value in promised_values:
+                promise_value.value = value
 
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):

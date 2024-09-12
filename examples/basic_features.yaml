@@ -82,3 +82,13 @@ feature_e_upper:
       _target_: feature_fabrica.transform.FeatureImporter
       feature: feature_e
       transform_stage: upper
+
+feature_e_one_hot:
+  description: "Value of feature E One Hot Encoded"
+  data_type: "int32"
+  dependencies: ["feature_e"]
+  transformation:
+    import:
+      _target_: feature_fabrica.transform.FeatureImporter
+      feature: feature_e
+      transform_stage: one_hot
