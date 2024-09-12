@@ -3,10 +3,10 @@
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1O9i-g3vmxyazwdadTVjgBlY1GFN4f7Xt?usp=sharing)
 
 ![PyPI version](https://img.shields.io/pypi/v/feature-fabrica?style=flat-square)
-![Stars](https://img.shields.io/github/stars/your-repo/feature-fabrica?style=flat-square)
-![Issues](https://img.shields.io/github/issues/your-repo/feature-fabrica?style=flat-square)
-![License](https://img.shields.io/github/license/your-repo/feature-fabrica?style=flat-square)
-![Contributors](https://img.shields.io/github/contributors/your-repo/feature-fabrica?style=flat-square)
+![Stars](https://img.shields.io/github/stars/cowana-ai/feature-fabrica?style=flat-square)
+![Issues](https://img.shields.io/github/issues/cowana-ai/feature-fabrica?style=flat-square)
+![License](https://img.shields.io/github/license/cowana-ai/feature-fabrica?style=flat-square)
+![Contributors](https://img.shields.io/github/contributors/cowana-ai/feature-fabrica?style=flat-square)
 
 For **data scientists, ML engineers**, and **AI researchers** who want to simplify feature engineering, manage complex dependencies, and boost productivity.
 
