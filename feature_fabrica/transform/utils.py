@@ -1,3 +1,4 @@
+import re
 from collections.abc import Iterable
 from typing import Union
 
@@ -12,7 +13,21 @@ NumericValue = Union[np.float32, np.float64, np.int32, np.int64, float, int]
 StrArray = Union[NDArray[np.str_], np.ndarray]
 StrValue = Union[np.str_, str]
 
+DateTimeArray = NDArray[np.datetime64]
+DateTimeValue = np.datetime64
+
 StrOrNumArray = Union[StrArray, NumericArray]
+
+DATE_REGEX = re.compile(
+    r'^(\d{4}-\d{2}-\d{2})'          # Matches YYYY-MM-DD
+    r'(?:[ T](\d{2})(?::(\d{2}))?(?::(\d{2}))?)?$'  # Optionally matches HH, HH:MM, or HH:MM:SS
+)
+
+def is_numpy_datetime_format(date_str: str) -> bool:
+    # Check if the string matches the common datetime formats (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+    if not DATE_REGEX.match(date_str):
+        return False
+    return True
 
 def broadcast_and_normalize_numeric_array(iterable: Iterable) -> NumericArray:
     # Normalize all elements to np.array
