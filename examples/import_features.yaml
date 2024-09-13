@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - basic_features
 
 feature_e_original:

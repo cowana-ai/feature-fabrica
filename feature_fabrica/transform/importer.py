@@ -69,14 +69,16 @@ class FeatureImporter(Transformation):
             has_str = 0
 
             for d in imported_list:
-                dtype_name = d.dtype.name # type: ignore[union-attr]
-                if 'float' in dtype_name:
+                # mixed type
+                if has_float and has_int and has_str:
+                    break
+                dtype = d.dtype # type: ignore[union-attr]
+                if np.issubdtype(dtype, np.floating):
                     has_float += 1
-                elif 'int' in dtype_name:
+                elif np.issubdtype(dtype, np.integer):
                     has_int += 1
-                elif 'str' in dtype_name:
+                elif np.issubdtype(dtype, np.str_):
                     has_str += 1
-
             # Handle mixed numeric types (if both int and float, cast to float)
             if (has_float or has_int) and not has_str:
                 return np.array(imported_list, dtype=float if has_float else int)
