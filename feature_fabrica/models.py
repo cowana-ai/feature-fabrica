@@ -1,6 +1,5 @@
 # models.py
 import hashlib
-import re
 from typing import Any, Optional
 
 import numpy as np
@@ -44,31 +43,34 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
     def validate_value(cls, values):
         v = values.get("value")
         data_type = values.get("data_type")
-        # allow PromiseValue only
+
+        # Allow PromiseValue without validation
         if isinstance(v, PromiseValue):
             return values
-        # Get the expected data type from builtins or numpy
-        expected_type = getattr(np, data_type, None)
 
-        if expected_type is None:
-            raise ValueError(f"Unsupported data type '{data_type}', use numpy typing!")
+        # Get the expected data type from numpy
+        try:
+            expected_dtype = getattr(np, data_type)
+        except AttributeError:
+            raise ValueError(f"Unsupported data type '{data_type}', use valid numpy dtype!")
 
-        # Validate that the array has the correct data type
-        actual_type_name = v.dtype.name
-        actual_type, actual_precision = re.findall(r'\D+|\d+', actual_type_name)
+        # Check if the value is a NumPy array
+        if not isinstance(v, np.ndarray):
+            raise ValueError(f"Value must be a NumPy array, got {type(v).__name__} instead.")
 
-        expected_type_list = re.findall(r'\D+|\d+', data_type)
-
-        if actual_type not in data_type:
+        # Validate that the array dtype matches or is compatible with the expected dtype
+        if not (np.issubdtype(v.dtype.type, expected_dtype) or np.can_cast(v.dtype.type, expected_dtype, casting='unsafe')):
             raise ValueError(
-                f"Array dtype '{v.dtype}' does not match expected type '{data_type}'"
+                f"Array dtype '{v.dtype}' does not match or is not compatible with expected type '{data_type}'"
             )
-        elif len(expected_type_list) > 1 and actual_precision != expected_type_list[1]:
-            # convert to desired type if compatible
-            v = v.astype(expected_type)
 
-        # Update the value in the values dictionary
-        values["value"] = v
+        # Optionally, convert to the desired type if compatible
+        if v.dtype.type is not expected_dtype:
+            try:
+                v = v.astype(expected_dtype)
+            except TypeError:
+                raise ValueError(f"Failed to convert array to expected dtype '{data_type}'.")
+        values["value"] = v  # Update the value in the values dictionary
         return values
 
     def __array__(self, dtype=None, copy=None):
