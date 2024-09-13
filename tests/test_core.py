@@ -41,7 +41,7 @@ class TestFeatureSet(unittest.TestCase):
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
-            config_path="./examples", config_name="basic_features", log_transformation_chain=False
+            config_path="./examples", config_name="import_features", log_transformation_chain=False
         )
         results = feature_manager.compute_features(data)
         # Assertions for array results

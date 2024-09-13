@@ -58,8 +58,33 @@ class FeatureImporter(Transformation):
         return False
 
     @beartype
-    def execute(self) -> StrOrNumArray:
+    def execute(self) -> StrOrNumArray | list[StrOrNumArray]:
         if len(self.features_to_import) == 1:
             return self.data[0].value
         else:
-            return np.array([promise_value.value for promise_value in self.data])
+            imported_list = [promise_value.value for promise_value in self.data]
+            data_types = [d.dtype for d in imported_list] # type: ignore[union-attr]
+
+
+            # Determine whether we have mixed types and what the final type should be
+            has_float = 0
+            has_int = 0
+            has_str = 0
+
+            for dtype in data_types:
+                if 'float' in dtype.name:
+                    has_float += 1
+                elif 'int' in dtype.name:
+                    has_int += 1
+                elif 'str' in dtype.name:
+                    has_str += 1
+
+            # Handle mixed numeric types (if both int and float, cast to float)
+            if (has_float or has_int) and not has_str:
+                return np.array(imported_list, dtype=float if has_float else int)
+
+            # Handle string arrays
+            if has_str == len(data_types):
+                return np.array(imported_list, dtype=str)
+            # Fallback in case data types are mixed or need custom handling
+            return imported_list
