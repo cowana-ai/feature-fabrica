@@ -120,7 +120,8 @@ class Feature:
         promised_values: list[PromiseValue] = self._export_to_features.get(transformation_name, [])
         if promised_values:
             for promise_value in promised_values:
-                promise_value.value = value
+                # pass value to PromiseValue
+                promise_value(value)
 
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
