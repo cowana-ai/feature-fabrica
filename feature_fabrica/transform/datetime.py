@@ -2,8 +2,8 @@ import numpy as np
 from beartype import beartype
 
 from feature_fabrica.transform.base import Transformation
-from feature_fabrica.transform.utils import (DateTimeArray, StrArray,
-                                             TimeDeltaArray,
+from feature_fabrica.transform.utils import (DateTimeArray, NumericArray,
+                                             StrArray, TimeDeltaArray,
                                              is_numpy_datetime_format)
 
 
@@ -72,3 +72,79 @@ class DateTimeDifference(Transformation):
             result = result.astype(f'timedelta64[{self.compute_unit}]')
 
         return result
+
+class DateTimeArithmeticBase(Transformation):
+    @beartype
+    def __init__(self, time_delta: int, compute_unit: str, feature: str | None = None):
+        super().__init__()
+        if compute_unit not in ['as', 'fs', 'ps', 'ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y']:
+            raise ValueError(f"compute_unit= {compute_unit} is not a valid code!")
+
+        self.time_delta = np.timedelta64(time_delta, compute_unit)
+        self.feature = feature
+        if self.feature:
+            self.execute = self.default # type: ignore[method-assign]
+        else:
+            self.execute = self.with_data # type: ignore[method-assign]
+    @beartype
+    def default(self) -> DateTimeArray:
+        raise NotImplementedError()
+
+    @beartype
+    def with_data(self, data: DateTimeArray) -> DateTimeArray:
+        raise NotImplementedError()
+
+class DateTimeAdd(DateTimeArithmeticBase):
+    @beartype
+    def with_data(self, data: DateTimeArray) -> DateTimeArray:
+        return data + self.time_delta
+    @beartype
+    def default(self) -> DateTimeArray:
+        raise self.feature + self.time_delta
+
+class DateTimeSubtract(DateTimeArithmeticBase):
+    @beartype
+    def with_data(self, data: DateTimeArray) -> DateTimeArray:
+        return data - self.time_delta
+    @beartype
+    def default(self) -> DateTimeArray:
+        raise self.feature - self.time_delta
+
+class DateTimeExtract(Transformation):
+    @beartype
+    def __init__(self, component: str):
+        """Extracts a specific component from each datetime in the input array.
+
+        Parameters
+        ----------
+        component : str
+            The component to extract. Valid values are 'year', 'month', 'day',
+            'hour', 'minute', 'second'.
+
+        Raises
+        ------
+        ValueError
+            If `component` is not a valid component.
+        """
+        super().__init__()
+        valid_components = {'Y', 'M', 'D', 'h', 'm', 's'}
+        if component not in valid_components:
+            raise ValueError(f"Invalid component '{component}'. Valid values are {valid_components}.")
+        self.component = component
+
+    @beartype
+    def execute(self, data: DateTimeArray) -> NumericArray:  # type: ignore[return]
+        data_converted_object = data.astype(f'datetime64[{self.component}]').astype(object)
+        # Extract component based on the specified component
+        if self.component == 'Y':
+            return np.array([d.year for d in data_converted_object], dtype=np.int32)
+        elif self.component == 'M':
+            return np.array([d.month for d in data_converted_object], dtype=np.int32)
+        elif self.component == 'D':
+            return  np.array([d.day for d in data_converted_object], dtype=np.int32)
+        elif self.component == 'h':
+            return np.array([d.hour for d in data_converted_object], dtype=np.int32)
+        elif self.component == 'm':
+            return np.array([d.minute for d in data_converted_object], dtype=np.int32)
+        elif self.component == 's':
+            return np.array([d.second for d in data_converted_object], dtype=np.int32)
