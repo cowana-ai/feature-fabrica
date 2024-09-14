@@ -61,6 +61,15 @@ class MultiplyReduce(BaseReduce):
 class SubtractReduce(BaseReduce):
     ufunc = np.subtract
 
+class CountReduce(Transformation):
+    def __init__(self, axis=0):
+        super().__init__()
+        self.axis = axis
+
+    @beartype
+    def execute(self, data: list[np.ndarray]) -> NumericArray:
+        return np.array([arr.shape[self.axis] for arr in data])
+
 class DivideTransform(Transformation):
     def __init__(
         self,

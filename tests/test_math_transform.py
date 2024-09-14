@@ -3,12 +3,13 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from feature_fabrica.transform import (ClipTransform, DivideTransform,
-                                       ExpTransform, LogTransform,
-                                       MinMaxTransform, MultiplyReduce,
-                                       PowerTransform, ScaleFeature,
-                                       SqrtTransform, SubtractReduce,
-                                       SumReduce, ZScoreTransform)
+from feature_fabrica.transform import (ClipTransform, CountReduce,
+                                       DivideTransform, ExpTransform,
+                                       LogTransform, MinMaxTransform,
+                                       MultiplyReduce, PowerTransform,
+                                       ScaleFeature, SqrtTransform,
+                                       SubtractReduce, SumReduce,
+                                       ZScoreTransform)
 
 
 class TestTransformations(unittest.TestCase):
@@ -68,6 +69,24 @@ class TestTransformations(unittest.TestCase):
         transform = SubtractReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
         result = transform.execute(np.array([1]))
         expected = np.array([-4, -5, -6])
+        assert_array_almost_equal(result, expected)
+
+    def test_count_reduce(self):
+        transform = CountReduce()
+        data = [np.arange(10), np.arange(20), np.arange(30)]
+        result = transform.execute(data)
+        expected = np.array([10, 20, 30])
+        assert_array_almost_equal(result, expected)
+
+        data = [np.array(['a', 'b', 'c']), np.array(['a', 'b']), np.array(['a'])]
+        result = transform.execute(data)
+        expected = np.array([3, 2, 1])
+        assert_array_almost_equal(result, expected)
+
+        transform = CountReduce(axis=1)
+        data = [np.array([[1, 2], [2, 3]]), np.array([[1, 2, 3], [2, 3, 4]])]
+        result = transform.execute(data)
+        expected = np.array([2, 3])
         assert_array_almost_equal(result, expected)
 
     def test_divide_transform_with_numerator(self):
