@@ -39,7 +39,6 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
     def validate_value(cls, values):
         v = values.get("value")
         data_type = values.get("data_type")
-
         # Allow PromiseValue without validation
         if isinstance(v, PromiseValue):
             return values
@@ -55,7 +54,8 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
             raise ValueError(f"Value must be a NumPy array, got {type(v).__name__} instead.")
 
         # Validate that the array dtype matches or is compatible with the expected dtype
-        if not (np.issubdtype(v.dtype.type, expected_dtype) or np.can_cast(v.dtype.type, expected_dtype, casting='unsafe')):
+        # TODO: make casting type configurable
+        if not (np.issubdtype(v.dtype.type, expected_dtype) or np.can_cast(v.dtype.type, expected_dtype, casting="unsafe")):
             raise ValueError(
                 f"Array dtype '{v.dtype}' does not match or is not compatible with expected type '{data_type}'"
             )
