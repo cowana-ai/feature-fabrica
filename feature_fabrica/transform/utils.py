@@ -14,11 +14,8 @@ NumericValue = Union[np.floating, np.integer, float, int]
 StrArray = Annotated[np.ndarray, Is[lambda array: array.dtype.kind == 'U']]
 StrValue = Union[np.str_, str]
 
-time_codes = ['as', 'fs', 'ps', 'ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y']
-DateTimeArray = Union[*[NDArray[np.dtype(f'datetime64[{i}]')] for i in time_codes]] # type: ignore
-TimeDeltaArray = Union[*[NDArray[np.dtype(f'timedelta64[{i}]')] for i in time_codes]] # type: ignore
-DateTimeValue = Union[*[np.dtype(f'datetime64[{i}]') for i in time_codes]] # type: ignore
-TimeDeltaValue = Union[*[np.dtype(f'timedelta64[{i}]') for i in time_codes]] # type: ignore
+DateTimeArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.datetime64]]
+TimeDeltaArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.timedelta64]]
 
 StrOrNumArray = Union[StrArray, NumericArray]
 
