@@ -100,7 +100,7 @@ class DateTimeAdd(DateTimeArithmeticBase):
         return data + self.time_delta
     @beartype
     def default(self) -> DateTimeArray:
-        raise self.feature + self.time_delta
+        return self.feature + self.time_delta
 
 class DateTimeSubtract(DateTimeArithmeticBase):
     @beartype
@@ -108,7 +108,7 @@ class DateTimeSubtract(DateTimeArithmeticBase):
         return data - self.time_delta
     @beartype
     def default(self) -> DateTimeArray:
-        raise self.feature - self.time_delta
+        return self.feature - self.time_delta
 
 class DateTimeExtract(Transformation):
     @beartype

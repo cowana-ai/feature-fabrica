@@ -1,7 +1,9 @@
 import unittest
 
 import numpy as np
+from easydict import EasyDict as edict
 
+from feature_fabrica.models import FeatureValue
 from feature_fabrica.transform import (DateTimeAdd, DateTimeDifference,
                                        DateTimeExtract, DateTimeSubtract)
 
@@ -54,33 +56,60 @@ class TestDateTimeTransform(unittest.TestCase):
     def test_datetime_add_days(self):
         data = np.array(['2024-09-10', '2024-09-12'], dtype='datetime64[D]')
         transform = DateTimeAdd(time_delta=2, compute_unit='D')
-        result = transform.with_data(data)
+        result = transform.execute(data)
         expected = np.array(['2024-09-12', '2024-09-14'], dtype='datetime64[D]')
         np.testing.assert_array_equal(result, expected)
+
+        transform = DateTimeAdd(time_delta=2, compute_unit='D', feature='feature_a')
+        feature_value = FeatureValue(value=data, data_type='datetime64')
+        example = edict({'feature_a': {'feature_value': feature_value}})
+        transform.compile(example)
+        result = transform.execute()
+        np.testing.assert_array_equal(result, expected)
+
 
     def test_datetime_add_hours(self):
         data = np.array(['2024-09-10T12', '2024-09-12T06'], dtype='datetime64[h]')
         transform = DateTimeAdd(time_delta=5, compute_unit='h')
-        result = transform.with_data(data)
+        result = transform.execute(data)
         expected = np.array(['2024-09-10T17', '2024-09-12T11'], dtype='datetime64[h]')
         np.testing.assert_array_equal(result, expected)
 
+        transform = DateTimeAdd(time_delta=5, compute_unit='h', feature='feature_a')
+        feature_value = FeatureValue(value=data, data_type='datetime64')
+        example = edict({'feature_a': {'feature_value': feature_value}})
+        transform.compile(example)
+        result = transform.execute()
+        np.testing.assert_array_equal(result, expected)
 
     # DateTimeSubtract Tests
     def test_datetime_subtract_days(self):
         data = np.array(['2024-09-10', '2024-09-12'], dtype='datetime64[D]')
         transform = DateTimeSubtract(time_delta=2, compute_unit='D')
-        result = transform.with_data(data)
+        result = transform.execute(data)
         expected = np.array(['2024-09-08', '2024-09-10'], dtype='datetime64[D]')
+        np.testing.assert_array_equal(result, expected)
+
+        transform = DateTimeSubtract(time_delta=2, compute_unit='D', feature='feature_a')
+        feature_value = FeatureValue(value=data, data_type='datetime64')
+        example = edict({'feature_a': {'feature_value': feature_value}})
+        transform.compile(example)
+        result = transform.execute()
         np.testing.assert_array_equal(result, expected)
 
     def test_datetime_subtract_hours(self):
         data = np.array(['2024-09-10T12', '2024-09-12T06'], dtype='datetime64[h]')
         transform = DateTimeSubtract(time_delta=5, compute_unit='h')
-        result = transform.with_data(data)
+        result = transform.execute(data)
         expected = np.array(['2024-09-10T07', '2024-09-12T01'], dtype='datetime64[h]')
         np.testing.assert_array_equal(result, expected)
 
+        transform = DateTimeSubtract(time_delta=5, compute_unit='h', feature='feature_a')
+        feature_value = FeatureValue(value=data, data_type='datetime64')
+        example = edict({'feature_a': {'feature_value': feature_value}})
+        transform.compile(example)
+        result = transform.execute()
+        np.testing.assert_array_equal(result, expected)
 
     # DateTimeExtract Tests
     def test_datetime_extract_year(self):
