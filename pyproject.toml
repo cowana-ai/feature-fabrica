@@ -15,6 +15,7 @@ loguru = "^0.7.2"
 numpy = "^1.26.2"
 beartype = "^0.18.5"
 scikit-learn = "^1.5.1"
+jaxtyping = "^0.2.34"
 
 [build-system]
 requires = ["poetry-core"]

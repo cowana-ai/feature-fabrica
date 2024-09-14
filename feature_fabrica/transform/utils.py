@@ -1,15 +1,16 @@
 from collections.abc import Iterable
-from typing import Union
+from typing import Annotated, Union
 
 import numpy as np
-from numpy.typing import NDArray
+from beartype.vale import Is
+from jaxtyping import Float, Integer
 
 from feature_fabrica.models import FeatureValue
 
-NumericArray = Union[Union[NDArray[np.float32], NDArray[np.float64]], Union[NDArray[np.int32], NDArray[np.int64]]]
-NumericValue = Union[np.float32, np.float64, np.int32, np.int64, float, int]
+NumericArray = Union[Float[np.ndarray, "..."], Integer[np.ndarray, "..."]]
+NumericValue = Union[np.floating, np.integer, float, int]
 
-StrArray = Union[NDArray[np.str_], np.ndarray]
+StrArray = Annotated[np.ndarray, Is[lambda array: array.dtype.kind == 'U']]
 StrValue = Union[np.str_, str]
 
 StrOrNumArray = Union[StrArray, NumericArray]
