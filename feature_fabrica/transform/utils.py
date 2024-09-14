@@ -13,8 +13,11 @@ NumericValue = Union[np.float32, np.float64, np.int32, np.int64, float, int]
 StrArray = Union[NDArray[np.str_], np.ndarray]
 StrValue = Union[np.str_, str]
 
-DateTimeArray = NDArray[np.datetime64]
-DateTimeValue = np.datetime64
+time_codes = ['as', 'fs', 'ps', 'ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y']
+DateTimeArray = Union[*[NDArray[np.dtype(f'datetime64[{i}]')] for i in time_codes]] # type: ignore
+TimeDeltaArray = Union[*[NDArray[np.dtype(f'timedelta64[{i}]')] for i in time_codes]] # type: ignore
+DateTimeValue = Union[*[np.dtype(f'datetime64[{i}]') for i in time_codes]] # type: ignore
+TimeDeltaValue = Union[*[np.dtype(f'timedelta64[{i}]') for i in time_codes]] # type: ignore
 
 StrOrNumArray = Union[StrArray, NumericArray]
 
