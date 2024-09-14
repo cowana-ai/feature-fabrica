@@ -78,6 +78,11 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([5, 2, 1])
         assert_array_almost_equal(result, expected)
 
+        data = np.float32(2)
+        result = transform.execute(data)
+        expected = 5
+        assert_array_almost_equal(result, expected)
+
     def test_divide_transform_with_denominator(self):
         transform = DivideTransform(denominator=10)
         transform.compile()
