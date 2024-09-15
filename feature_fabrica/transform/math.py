@@ -196,9 +196,10 @@ class MinMaxTransform(Transformation):
         return min_max_normalized
 
 class KBinsDiscretize(Transformation):
-    def __init__(self, **kwargs):
+    @beartype
+    def __init__(self,n_bins: int = 5, encode: str = 'onehot', strategy: str = 'quantile',  subsample: int | None = 200000, **kwargs):
         super().__init__()
-        self.kbins = KBinsDiscretizer(**kwargs)
+        self.kbins = KBinsDiscretizer(n_bins=n_bins, encode=encode, strategy=strategy, subsample=subsample, **kwargs)
 
     @beartype
     def execute(self, data: NumericArray) -> NumericArray:
