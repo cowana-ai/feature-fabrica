@@ -5,7 +5,8 @@ from easydict import EasyDict as edict
 
 from feature_fabrica.models import FeatureValue
 from feature_fabrica.transform import (DateTimeAdd, DateTimeDifference,
-                                       DateTimeExtract, DateTimeSubtract)
+                                       DateTimeExtract, DateTimeSubtract,
+                                       ExtractDayofWeek)
 
 
 class TestDateTimeTransform(unittest.TestCase):
@@ -161,6 +162,66 @@ class TestDateTimeTransform(unittest.TestCase):
         with self.assertRaises(ValueError):
             DateTimeExtract(component='invalid_component')
 
+    def test_extract_day_week(self):
+        # Test case where we provide a numpy datetime64 array and expect numeric output (day of week as int)
+        data = np.array(['2024-09-11', '2024-09-12', '2024-09-13'], dtype='datetime64[D]')
+        expected_output = np.array([2, 3, 4])  # Wednesday, Thursday, Friday
+
+        extractor = ExtractDayofWeek(return_name=False)
+        result = extractor.execute(data)
+
+        np.testing.assert_array_equal(result, expected_output)
+
+        # Test case where we provide a numpy datetime64 array and expect string output (day names)
+        data = np.array(['2024-09-11', '2024-09-12', '2024-09-13'], dtype='datetime64[D]')
+        expected_output = np.array(['wednesday', 'thursday', 'friday'])
+
+        extractor = ExtractDayofWeek(return_name=True)
+        result = extractor.execute(data)
+
+        np.testing.assert_array_equal(result, expected_output)
+
+        # Test case with a list of numpy datetime64 arrays
+        data = [np.array(['2024-09-11', '2024-09-12'], dtype='datetime64[D]'),
+                np.array(['2024-09-13'], dtype='datetime64[D]')]
+        expected_output = [np.array([2, 3]), np.array([4])]  # Numeric output (days as integers)
+
+        extractor = ExtractDayofWeek(return_name=False)
+        result = extractor.execute(data)
+
+        for r, expected in zip(result, expected_output):
+            np.testing.assert_array_equal(r, expected)
+
+        # Test case with a list of numpy datetime64 arrays, expecting string output
+        data = [np.array(['2024-09-11', '2024-09-12'], dtype='datetime64[D]'),
+                np.array(['2024-09-13', '2024-09-14'], dtype='datetime64[D]')]
+        expected_output = [np.array(['wednesday', 'thursday']),
+                           np.array(['friday', 'saturday'])]  # String output
+
+        extractor = ExtractDayofWeek(return_name=True)
+        result = extractor.execute(data)
+
+        for r, expected in zip(result, expected_output):
+            np.testing.assert_array_equal(r, expected)
+
+        # Test case using the default method with numeric output
+        data = np.array(['2024-09-11', '2024-09-12', '2024-09-13'], dtype='datetime64[D]')
+        feature_value = FeatureValue(value=data, data_type='datetime64')
+        example = edict({'feature_a': {'feature_value': feature_value}})
+        extractor = ExtractDayofWeek(feature='feature_a', return_name=False)
+        extractor.compile(example)
+        expected_output = np.array([2, 3, 4])  # Wednesday, Thursday, Friday
+        result = extractor.execute()
+        np.testing.assert_array_equal(result, expected_output)
+
+        # Test case using the default method with string output
+        expected_output = np.array(['wednesday', 'thursday', 'friday'])
+
+        extractor = ExtractDayofWeek(feature='feature_a', return_name=True)
+        extractor.compile(example)
+        result = extractor.execute()
+
+        np.testing.assert_array_equal(result, expected_output)
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,7 @@ from feature_fabrica.transform.utils import (DateTimeArray, NumericArray,
                                              StrArray, TimeDeltaArray,
                                              is_numpy_datetime_format)
 
+DAYS_OF_WEEK = np.array(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
 
 class DateTimeDifference(Transformation):
     @beartype
@@ -148,3 +149,33 @@ class DateTimeExtract(Transformation):
             return np.array([d.minute for d in data_converted_object], dtype=np.int32)
         elif self.component == 's':
             return np.array([d.second for d in data_converted_object], dtype=np.int32)
+
+class ExtractDayofWeek(Transformation):
+    @beartype
+    def __init__(self, feature: str | None = None, return_name: bool = False):
+        self.feature = feature
+        self.return_name = return_name
+        if self.feature:
+            self.execute = self.default # type: ignore[method-assign]
+        else:
+            self.execute = self.with_data # type: ignore[method-assign]
+    @beartype
+    def default(self) -> NumericArray | StrArray:
+        if self.feature and self.feature.dtype.type is not np.datetime64: # type: ignore[attr-defined]
+            self.feature = self.feature.astype(np.datetime64) # type: ignore[attr-defined]
+        result = (self.feature.astype('datetime64[D]').view('int64') - 4) % 7 # type: ignore[union-attr]
+        if self.return_name:
+            result = np.take(DAYS_OF_WEEK, result, axis=-1)
+        return result
+    @beartype
+    def with_data(self, data: DateTimeArray | list[DateTimeArray]) -> NumericArray | StrArray | list[NumericArray] | list[StrArray]:
+        if isinstance(data, np.ndarray):
+            result = (data.astype('datetime64[D]').view('int64') - 4) % 7
+            if self.return_name:
+                result = np.take(DAYS_OF_WEEK, result, axis=-1)
+            return result
+        else:
+            result_list = [(d.astype('datetime64[D]').view('int64') - 4) % 7 for d in data]
+            if self.return_name:
+                result_list = [np.take(DAYS_OF_WEEK, array, axis=-1) for array in result_list]
+            return result_list
