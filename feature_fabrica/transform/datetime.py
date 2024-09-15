@@ -77,6 +77,7 @@ class DateTimeDifference(Transformation):
 class DateTimeArithmeticBase(Transformation):
     @beartype
     def __init__(self, time_delta: int, compute_unit: str, feature: str | None = None):
+        """For simple datetime64 and timedelta64 arithmetics."""
         super().__init__()
         if compute_unit not in ['as', 'fs', 'ps', 'ns', 'us', 'ms', 's', 'm', 'h', 'D', 'W', 'M', 'Y']:
             raise ValueError(f"compute_unit= {compute_unit} is not a valid code!")
@@ -119,8 +120,8 @@ class DateTimeExtract(Transformation):
         Parameters
         ----------
         component : str
-            The component to extract. Valid values are 'year', 'month', 'day',
-            'hour', 'minute', 'second'.
+            The component to extract. Valid values are 'Y', 'M', 'D',
+            'h', 'm', 's'.
 
         Raises
         ------
@@ -153,6 +154,19 @@ class DateTimeExtract(Transformation):
 class ExtractDayofWeek(Transformation):
     @beartype
     def __init__(self, feature: str | None = None, return_name: bool = False):
+        """Extract day of the week.
+
+        Parameters
+        ----------
+        feature : str | None, optional
+            If set, the information will be extracted from that feature. The default is None.
+        return_name : bool, optional
+            If True, return the name of the day. The default is False.
+
+        Returns
+        -------
+        None.
+        """
         self.feature = feature
         self.return_name = return_name
         if self.feature:
