@@ -2,6 +2,7 @@ from collections.abc import Iterable
 
 import numpy as np
 from beartype import beartype
+from sklearn.preprocessing import KBinsDiscretizer
 
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import (
@@ -193,3 +194,20 @@ class MinMaxTransform(Transformation):
             # Apply MinMax normalization
             min_max_normalized = (data - min_) / (max_ - min_)
         return min_max_normalized
+
+class KBinsDiscretize(Transformation):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.kbins = KBinsDiscretizer(**kwargs)
+
+    @beartype
+    def execute(self, data: NumericArray) -> NumericArray:
+        shape = data.shape
+
+        if len(shape) == 1:
+            data = data.reshape(-1, 1)
+        binned_data = self.kbins.fit_transform(data)
+        if len(shape) == 1:
+            binned_data = binned_data.reshape(shape)
+
+        return binned_data

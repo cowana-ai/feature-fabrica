@@ -4,11 +4,12 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from feature_fabrica.transform import (ClipTransform, DivideTransform,
-                                       ExpTransform, LogTransform,
-                                       MinMaxTransform, MultiplyReduce,
-                                       PowerTransform, ScaleFeature,
-                                       SqrtTransform, SubtractReduce,
-                                       SumReduce, ZScoreTransform)
+                                       ExpTransform, KBinsDiscretize,
+                                       LogTransform, MinMaxTransform,
+                                       MultiplyReduce, PowerTransform,
+                                       ScaleFeature, SqrtTransform,
+                                       SubtractReduce, SumReduce,
+                                       ZScoreTransform)
 
 
 class TestTransformations(unittest.TestCase):
@@ -190,7 +191,13 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([[0, 0.5, 1], [0, 0.5, 1]])
         assert_array_almost_equal(result, expected)
 
-
+    def test_kbins_transform(self):
+        transform = KBinsDiscretize(n_bins=3, encode='ordinal', strategy='uniform')
+        transform.compile()
+        data = np.array([1, 4, 10, 15, 21, 25])
+        result = transform.execute(data)
+        expected = np.array([0, 0, 1, 1, 2, 2])
+        assert_array_almost_equal(result, expected)
 
 if __name__ == "__main__":
     unittest.main()
