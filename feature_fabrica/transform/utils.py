@@ -14,7 +14,7 @@ StrArray = Annotated[np.ndarray, Is[lambda array: array.dtype.kind == 'U']]
 StrValue = Union[np.str_, str]
 
 StrOrNumArray = Union[StrArray, NumericArray]
-AnyArrya = Union[StrArray, NumericArray] # to be extended
+AnyArray = Union[StrArray, NumericArray] # to be extended
 
 def broadcast_and_normalize_numeric_array(iterable: Iterable) -> NumericArray:
     # Normalize all elements to np.array

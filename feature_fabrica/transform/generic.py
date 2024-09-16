@@ -1,7 +1,7 @@
 from beartype import beartype
 
 from feature_fabrica.transform.base import Transformation
-from feature_fabrica.transform.utils import AnyArrya, is_valid_numpy_dtype
+from feature_fabrica.transform.utils import AnyArray, is_valid_numpy_dtype
 
 
 class AsType(Transformation):
@@ -12,5 +12,5 @@ class AsType(Transformation):
 
         self.dtype = dtype
     @beartype
-    def execute(self, data: AnyArrya) -> AnyArrya:
+    def execute(self, data: AnyArray) -> AnyArray:
         return data.astype(self.dtype)
