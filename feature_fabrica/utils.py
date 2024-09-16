@@ -5,8 +5,10 @@ from beartype import beartype
 from loguru import logger
 
 from feature_fabrica.exceptions import CyclicDependencyError
+from feature_fabrica.promise_manager import PromiseManager
 
 logger_set = False
+promise_memo = None
 
 @beartype
 def setup_logger(
@@ -48,6 +50,11 @@ def get_logger(**kwargs):
         setup_logger(**kwargs)
     return logger
 
+def get_promise_manager():
+    global promise_memo
+    if not promise_memo:
+        promise_memo = PromiseManager()
+    return promise_memo
 
 def verify_dependencies(dependencies_count: dict[str, int]):
     logger = get_logger()
