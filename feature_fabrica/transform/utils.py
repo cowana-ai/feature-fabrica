@@ -18,7 +18,7 @@ DateTimeArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.da
 TimeDeltaArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.timedelta64]]
 
 StrOrNumArray = Union[StrArray, NumericArray]
-AnyArrya = Union[StrArray, NumericArray] # to be extended
+AnyArray = Union[StrArray, NumericArray] # to be extended
 
 DATE_REGEX = re.compile(
     r'^(\d{4}-\d{2}-\d{2})'          # Matches YYYY-MM-DD
