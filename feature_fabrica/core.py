@@ -1,7 +1,6 @@
 # core.py
 import concurrent.futures
 from collections import defaultdict
-from collections.abc import Callable
 
 import numpy as np
 from beartype import BeartypeConf, BeartypeStrategy, beartype
@@ -12,10 +11,12 @@ from omegaconf import DictConfig
 
 from feature_fabrica.models import (FeatureSpec, FeatureValue,  # noqa
                                     PromiseValue, THead, TNode)
-from feature_fabrica.utils import get_logger, verify_dependencies
+from feature_fabrica.utils import (get_logger, get_promise_manager,
+                                   verify_dependencies)
 from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()
+PROMISE_MANAGER = get_promise_manager()
 # Dynamically create a new @slowmobeartype decorator enabling "full fat"
 # O(n) type-checking.
 # Type-check all items of the passed list. Do this only when you pretend
@@ -30,19 +31,17 @@ class Feature:
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
         self.transformation = instantiate(self.spec.transformation)
-        self.feature_value = FeatureValue(
-            value=PromiseValue(), data_type=self.spec.data_type
+        self.feature_value = PromiseValue(
+            value=None, data_type=self.spec.data_type
         )
 
         self.log_transformation_chain = log_transformation_chain
         self.transformation_chain_head = THead()
         self.transformation_ptr = self.transformation_chain_head
 
-        self._export_to_features: dict[str, list[PromiseValue]] = defaultdict(list)
-
         self.computed = False
-        self._before_compute_hooks: list[Callable] = []
-        self._after_compute_hooks: list[Callable] = []
+        self.promised: bool = PROMISE_MANAGER.is_promised_any(self.name)
+
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         if self.transformation:
@@ -68,6 +67,9 @@ class Feature:
         np.ndarray
             The computed feature value.
         """
+        if self.promised and PROMISE_MANAGER.is_promised(self.name):
+            PROMISE_MANAGER.pass_data(data=value, feature=self.name)
+
         # Apply the transformation function if specified
         if self.transformation:
             try:
@@ -82,8 +84,8 @@ class Feature:
                         result_dict = transformation_obj()
                     prev_value = result_dict.value
 
-                    if self._export_to_features:
-                        self.export_to_features(value=result_dict.value, transformation_name=transformation_name)
+                    if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
+                        PROMISE_MANAGER.pass_data(data=result_dict.value, feature=self.name, transform_stage=transformation_name)
 
                     if self.log_transformation_chain:
                         self.update_transformation_chain(
@@ -106,23 +108,8 @@ class Feature:
 
     @logger.catch(reraise=True)
     def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
-        # hooks on initial data
-        for hook in self._before_compute_hooks:
-            hook(data=value)
         result = self.compute(value)
-        # hooks on final data
-        for hook in self._after_compute_hooks:
-            hook(data=result)
         return result
-
-    @beartype
-    def export_to_features(self, value: np.ndarray, transformation_name: str):
-        promised_values: list[PromiseValue] = self._export_to_features.get(transformation_name, [])
-        if promised_values:
-            for promise_value in promised_values:
-                # pass value to PromiseValue
-                promise_value(value)
-
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
