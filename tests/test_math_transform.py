@@ -9,7 +9,7 @@ from feature_fabrica.transform import (ClipTransform, DivideTransform,
                                        MultiplyReduce, PowerTransform,
                                        ScaleFeature, SqrtTransform,
                                        SubtractReduce, SumReduce,
-                                       ZScoreTransform)
+                                       ZScoreTransform, AbsoluteTransform)
 
 
 class TestTransformations(unittest.TestCase):
@@ -137,6 +137,14 @@ class TestTransformations(unittest.TestCase):
         data = np.array([1, 2, 3])
         result = transform.execute(data)
         expected = np.array([1, 8, 27])
+        assert_array_almost_equal(result, expected)
+        
+    def test_abs_transform(self):
+        transform = AbsoluteTransform()
+        transform.compile()
+        data = np.array([-1, 2, -3])
+        result = transform.execute(data)
+        expected = np.array([1, 2, 3])
         assert_array_almost_equal(result, expected)
 
     def test_zscore_transform(self):
