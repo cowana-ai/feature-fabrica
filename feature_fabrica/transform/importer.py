@@ -47,7 +47,6 @@ class FeatureImporter(Transformation):
             return self.data[0].value
         else:
             imported_list = [promise_value.value for promise_value in self.data]
-
             # Determine whether we have mixed types and what the final type should be
             has_float = 0
             has_int = 0
