@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from feature_fabrica.transform import (AbsoluteTransform, ClipTransform,
+from feature_fabrica.transform import (ABSTransform, ClipTransform,
                                        DivideTransform, ExpTransform,
                                        KBinsDiscretize, LogTransform,
                                        MinMaxTransform, MultiplyReduce,
@@ -140,7 +140,7 @@ class TestTransformations(unittest.TestCase):
         assert_array_almost_equal(result, expected)
 
     def test_abs_transform(self):
-        transform = AbsoluteTransform()
+        transform = ABSTransform()
         transform.compile()
         data = np.array([-1, 2, -3])
         result = transform.execute(data)
