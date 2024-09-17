@@ -135,7 +135,7 @@ class PowerTransform(Transformation):
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return data**self.power
 
-class AbsoluteTransform(Transformation):
+class ABSTransform(Transformation):
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.abs(data)
