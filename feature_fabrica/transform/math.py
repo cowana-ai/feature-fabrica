@@ -37,14 +37,14 @@ class BaseReduce(Transformation):
             return self.ufunc.reduce(data, axis=self.axis)
         else:
             # Flatten the input arrays into a single contiguous array
-            cells_flat = np.concatenate(data)
+            cells_flat = np.concatenate(data, axis=self.axis)
 
             # Compute the lengths and starting positions of each array
             cell_lengths = np.array([len(arr) for arr in data])
-            cell_starts = np.insert(np.cumsum(cell_lengths[:-1]), 0, 0)
+            cell_starts = np.insert(np.cumsum(cell_lengths[:-1]), 0, 0, axis=self.axis)
 
             # Apply the reduceat function using the starting positions
-            return self.ufunc.reduceat(cells_flat, cell_starts)
+            return self.ufunc.reduceat(cells_flat, cell_starts, axis=self.axis)
 
     @beartype
     def with_data_and_iterable(self, data: NumericArray) -> NumericArray | NumericValue:

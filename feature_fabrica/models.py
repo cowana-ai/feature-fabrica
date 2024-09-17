@@ -3,11 +3,8 @@ import hashlib
 from typing import Any, Optional
 
 import numpy as np
+from beartype import beartype
 from pydantic import BaseModel, ConfigDict, Field, root_validator, validator
-
-
-class PromiseValue:
-    value: np.ndarray | None = None
 
 
 class FeatureSpec(BaseModel):
@@ -28,11 +25,32 @@ class FeatureSpec(BaseModel):
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
         return v
 
+class PromiseValue(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    value: np.ndarray | None = None
+    data_type: str | None = None
+
+    @beartype
+    def __call__(self, data: np.ndarray):
+        self.value = data
+
+    def __setattr__(self, name, value):
+       if name == "value" and isinstance(value, np.ndarray):
+           # Once value is set, transform the instance into FeatureValue
+           object.__setattr__(self, name, value)
+           data_type = self.data_type or value.dtype.name
+           # Replace this object in the current scope with a FeatureValue
+           new_instance = FeatureValue(value=value, data_type='str_' if 'str' in data_type else value.dtype.name)
+           # Overwrite the current instance with the new FeatureValue
+           self.__class__ = new_instance.__class__
+           self.__dict__ = new_instance.__dict__
+       else:
+           super().__setattr__(name, value)
 
 class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assignment=True):  # type: ignore[call-arg]
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    value: np.ndarray | PromiseValue = Field(default=None)
+    value: np.ndarray = Field(default=None)
     data_type: str
 
     @root_validator(pre=True)
