@@ -139,7 +139,7 @@ class AbsoluteTransform(Transformation):
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.abs(data)
-    
+
 class ZScoreTransform(Transformation):
     def __init__(self, mean: float | None = None, std_dev: float | None = None, axis: int = -1):
         super().__init__()
