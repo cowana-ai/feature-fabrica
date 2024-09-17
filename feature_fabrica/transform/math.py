@@ -135,6 +135,10 @@ class PowerTransform(Transformation):
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return data**self.power
 
+class AbsoluteTransform(Transformation):
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
+        return np.abs(data)
 
 class ZScoreTransform(Transformation):
     def __init__(self, mean: float | None = None, std_dev: float | None = None, axis: int = -1):
