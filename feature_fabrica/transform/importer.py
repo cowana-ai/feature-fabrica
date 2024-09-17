@@ -22,7 +22,6 @@ class FeatureImporter(Transformation):
             A single transform stage to apply to all features unless individually specified.
         """
         super().__init__()
-
         self.features_to_import = []
         if not (features or feature):
             raise ValueError("features or feature should be set.")
