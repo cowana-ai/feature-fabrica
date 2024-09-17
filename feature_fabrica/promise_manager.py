@@ -29,7 +29,14 @@ class PromiseManager(ABC):
                 return True
         return False
     @beartype
-    def pass_data(self, data: np.ndarray, feature: str, transform_stage: str | None=None):
+    def pass_data(self, data: np.ndarray, feature: str, transform_stage: str | None=None, finally_delete_key: bool = False):
         key = feature if transform_stage is None else feature + ':' + transform_stage
         self.promised_memo[key](data)
-        del self.promised_memo[key]
+        if finally_delete_key:
+            del self.promised_memo[key]
+    @beartype
+    def delete_all_related_keys(self, feature: str):
+        all_keys = list(self.promised_memo.keys())
+        for key in all_keys:
+            if feature in key:
+                del self.promised_memo[key]

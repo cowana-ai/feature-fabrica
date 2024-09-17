@@ -103,13 +103,18 @@ class Feature:
             value = result_dict.value
 
         self.feature_value.value = value
-        self.computed = True
         return self.feature_value.value  # type: ignore[attr-defined]
 
     @logger.catch(reraise=True)
     def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
         result = self.compute(value)
+        self.finalize_feature()
         return result
+
+    def finalize_feature(self):
+        self.computed = True
+        PROMISE_MANAGER.delete_all_related_keys(self.name)
+        self.promised = False
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
