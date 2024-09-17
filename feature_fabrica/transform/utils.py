@@ -18,6 +18,7 @@ DateTimeArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.da
 TimeDeltaArray = Annotated[np.ndarray, Is[lambda array: array.dtype.type is np.timedelta64]]
 
 StrOrNumArray = Union[StrArray, NumericArray]
+AnyArrya = Union[StrArray, NumericArray] # to be extended
 
 DATE_REGEX = re.compile(
     r'^(\d{4}-\d{2}-\d{2})'          # Matches YYYY-MM-DD
@@ -47,3 +48,10 @@ def broadcast_and_normalize_numeric_array(iterable: Iterable) -> NumericArray:
         np.broadcast_to(elem, max_shape) for elem in normalized_iterable
     ]
     return broadcasted_iterable
+
+def is_valid_numpy_dtype(data_type: str) -> bool:
+    try:
+        np.dtype(data_type)
+        return True
+    except TypeError:
+        return False
