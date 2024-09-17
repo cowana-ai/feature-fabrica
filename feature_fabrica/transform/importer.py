@@ -4,7 +4,7 @@ from omegaconf import DictConfig, ListConfig
 
 from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform.base import Transformation
-from feature_fabrica.transform.utils import StrOrNumArray
+from feature_fabrica.transform.utils import AnyArray
 from feature_fabrica.utils import get_logger, get_promise_manager
 
 logger = get_logger()
@@ -42,7 +42,7 @@ class FeatureImporter(Transformation):
         self.data: list[PromiseValue] = [promise_manager.get_promise_value(feature, transform_stage) for (feature, transform_stage) in self.features_to_import]
 
     @beartype
-    def execute(self) -> StrOrNumArray | list[StrOrNumArray]:
+    def execute(self) -> AnyArray | list[AnyArray]:
         if len(self.features_to_import) == 1:
             return self.data[0].value
         else:
