@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import inspect
 import time
 from abc import ABC
 from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from easydict import EasyDict as edict
 
-from feature_fabrica.core import Feature
 from feature_fabrica.utils import get_logger
+
+if TYPE_CHECKING:
+    from feature_fabrica.core import Feature
 
 logger = get_logger()
 

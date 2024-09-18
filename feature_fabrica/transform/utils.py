@@ -6,8 +6,6 @@ import numpy as np
 from beartype.vale import Is
 from jaxtyping import Float, Integer
 
-from feature_fabrica.models import FeatureValue
-
 NumericArray = Union[Float[np.ndarray, "..."], Integer[np.ndarray, "..."]]
 NumericValue = Union[np.floating, np.integer, float, int]
 
@@ -31,13 +29,15 @@ def is_numpy_datetime_format(date_str: str) -> bool:
         return False
     return True
 
+def has_ndarray_operators_mixin(obj):
+    mixin_methods = ['__array_ufunc__', '__array__']
+    return all(hasattr(obj, method) for method in mixin_methods)
+
 def broadcast_and_normalize_numeric_array(iterable: Iterable) -> NumericArray:
     # Normalize all elements to np.array
     normalized_iterable = []
     for element in iterable:  # type: ignore[union-attr]
-        if not isinstance(element, np.ndarray) and not isinstance(
-            element, FeatureValue
-        ):
+        if not isinstance(element, np.ndarray) and not has_ndarray_operators_mixin(element):
             element = np.array([element], dtype=np.float32)
         normalized_iterable.append(element)
     # Find the maximum shape among the elements

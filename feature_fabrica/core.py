@@ -9,8 +9,7 @@ from graphviz import Digraph
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from feature_fabrica.models import (FeatureSpec, FeatureValue,  # noqa
-                                    PromiseValue, THead, TNode)
+from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
 from feature_fabrica.utils import (get_logger, get_promise_manager,
                                    verify_dependencies)
 from feature_fabrica.yaml_parser import load_yaml
