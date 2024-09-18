@@ -1,11 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from beartype import beartype
 from omegaconf import DictConfig, ListConfig
 
-from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import AnyArray
 from feature_fabrica.utils import get_logger, get_promise_manager
+
+if TYPE_CHECKING:
+    from feature_fabrica.models import PromiseValue
 
 logger = get_logger()
 
