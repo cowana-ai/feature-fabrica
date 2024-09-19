@@ -19,6 +19,11 @@ class PromiseManager(ABC):
         return self.promised_memo[key]
 
     @beartype
+    def set_promise_value(self, promise_value: PromiseValue, base_name: str, suffix: str | None = None):
+        key = self._generate_key(base_name, suffix)
+        self.promised_memo[key] = promise_value
+
+    @beartype
     def is_promised(self, base_name: str, suffix: str | None = None) -> bool:
         key = self._generate_key(base_name, suffix)
         return key in self.promised_memo
@@ -48,9 +53,12 @@ class PromiseManager(ABC):
         """Decorator to manage promises before executing the function."""
         def wrapper(transformation, *args, **kwargs):
             # Resolve all PromiseValues in the transformation
-            for attr_name, attr_value in transformation.__dict__.items():
-                if isinstance(attr_value, PromiseValue):
-                    attr_value()
+            if transformation.expects_promise:
+                for i in range(transformation.expects_promise):
+                    key = self._generate_key(base_name=str(id(transformation)), suffix=str(i))
+                    promise_value = self.promised_memo[key]
+                    promise_value()
+                    del self.promised_memo[key]
             # Call the original transformation method
             return func(transformation, *args, **kwargs)
 

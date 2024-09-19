@@ -20,8 +20,10 @@ promise_manager = get_promise_manager()
 class Transformation(ABC):
     def __init__(self) -> None:
         self.expects_data = False
+        self.expects_promise = 0
 
     def compile(self, features: dict[str, Feature] | None = None) -> bool:
+        promise_count = 0
         if features is not None:
             for attr_name, attr_value in self.__dict__.items():
                 if attr_name == "expects_data":
@@ -33,6 +35,8 @@ class Transformation(ABC):
                     attr_value.compile(features)
                 elif isinstance(attr_value, PromiseValue) and isinstance(attr_value.apply_transform, Transformation):
                     attr_value.apply_transform.compile(features) # type: ignore
+                    promise_manager.set_promise_value(attr_value, base_name=str(id(self)), suffix=str(promise_count))
+                    promise_count += 1
                 elif isinstance(attr_value, Iterable):
                     setattr(
                         self,
@@ -67,7 +71,7 @@ class Transformation(ABC):
                 f"Expected 1 argument, but got {len(execute_params) - 1}."
             )
         # assert hasattr(self, "expects_data")
-
+        self.expects_promise = promise_count
         self.expects_data = len(execute_params) == 1
         return self.expects_data
 
