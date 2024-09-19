@@ -33,10 +33,13 @@ class Transformation(ABC):
                     setattr(self, attr_name, features[attr_value].feature_value)
                 elif isinstance(attr_value, Transformation):
                     attr_value.compile(features)
-                elif isinstance(attr_value, PromiseValue) and isinstance(attr_value.apply_transform, Transformation):
-                    attr_value.apply_transform.compile(features) # type: ignore
-                    promise_manager.set_promise_value(attr_value, base_name=str(id(self)), suffix=str(promise_count))
-                    promise_count += 1
+                elif isinstance(attr_value, PromiseValue):
+                    if isinstance(attr_value.apply_transform, Transformation):
+                        attr_value.apply_transform.compile(features) # type: ignore
+                        promise_manager.set_promise_value(attr_value, base_name=str(id(self)), suffix=str(promise_count))
+                        promise_count += 1
+                    else:
+                        raise ValueError("PromiseValue.apply_transform is expected to be a signle Transformation!")
                 elif isinstance(attr_value, Iterable):
                     setattr(
                         self,
