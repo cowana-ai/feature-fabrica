@@ -61,7 +61,6 @@ complex_operation:
   transformation:
     divide:
       _target_: feature_fabrica.transform.DivideTransform
-      _recursive_: True
       numerator:
         _target_: feature_fabrica.models.PromiseValue
         apply_transform:
