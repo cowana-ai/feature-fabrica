@@ -208,7 +208,8 @@ class MinMaxTransform(Transformation):
 
 class KBinsDiscretize(Transformation):
     @beartype
-    def __init__(self,n_bins: NumericValue | PromiseValue = 5, encode: str = 'onehot', strategy: str = 'quantile',  subsample: NumericValue | PromiseValue | None = 200000, **kwargs):
+    def __init__(self,n_bins: NumericValue | PromiseValue = 5, encode: str = 'onehot',
+                 strategy: str = 'quantile',  subsample: NumericValue | PromiseValue | None = 200000, **kwargs):
         super().__init__()
         self.kbins = KBinsDiscretizer(n_bins=n_bins, encode=encode, strategy=strategy, subsample=subsample, **kwargs)
 
