@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING
 
 from easydict import EasyDict as edict
 
-from feature_fabrica.utils import get_logger
+from feature_fabrica.models import PromiseValue
+from feature_fabrica.utils import get_logger, get_promise_manager
 
 if TYPE_CHECKING:
     from feature_fabrica.core import Feature
 
 logger = get_logger()
-
+promise_manager = get_promise_manager()
 
 class Transformation(ABC):
     def __init__(self) -> None:
@@ -28,6 +29,10 @@ class Transformation(ABC):
 
                 if isinstance(attr_value, str) and attr_value in features:
                     setattr(self, attr_name, features[attr_value].feature_value)
+                elif isinstance(attr_value, Transformation):
+                    attr_value.compile(features)
+                elif isinstance(attr_value, PromiseValue) and attr_value.apply_transform is not None:
+                    attr_value.apply_transform.compile(features) # type: ignore
                 elif isinstance(attr_value, Iterable):
                     setattr(
                         self,
@@ -50,8 +55,6 @@ class Transformation(ABC):
                             for key, val in attr_value.items()
                         },
                     )
-                elif isinstance(attr_value, Transformation):
-                    attr_value.compile(features)
 
         # Check the signature of the execute method
         execute_signature = inspect.signature(self.execute)
@@ -71,6 +74,7 @@ class Transformation(ABC):
     def execute(self, *args):
         raise NotImplementedError()
 
+    @promise_manager
     def __call__(self, *args):
         # Start time
         start_time = time.time()

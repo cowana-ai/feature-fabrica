@@ -40,3 +40,20 @@ class PromiseManager(ABC):
         for key in all_keys:
             if feature in key:
                 del self.promised_memo[key]
+
+    def __call__(self, func):
+        """Acts as a decorator to wrap the __call__ method in transformations.
+
+        This decorator ensures promises are managed before executing the function.
+        """
+        def wrapper(transformation, *args, **kwargs):
+            #feature_name = transformation.__class__.__name__
+            for attr_name, attr_value in transformation.__dict__.items():
+                if isinstance(attr_value, PromiseValue):
+                    attr_value()
+                    assert not isinstance(attr_value, PromiseValue)
+            # Call the original transformation method
+            result = func(transformation, *args, **kwargs)
+            return result
+
+        return wrapper

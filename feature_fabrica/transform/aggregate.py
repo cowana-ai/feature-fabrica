@@ -2,6 +2,7 @@ import numpy as np
 from beartype import beartype
 from scipy import stats
 
+from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import NumericArray, StrOrNumArray
 
@@ -60,7 +61,7 @@ DEAFULT_REDUCTIONS = dict(
 
 class GroupByReduce(Transformation):
     @beartype
-    def __init__(self, key_feature: str, reduce_func: Transformation | str = "mean", axis: int = -1):
+    def __init__(self, key_feature: str | PromiseValue, reduce_func: Transformation | str = "mean", axis: int = -1):
         super().__init__()
         if isinstance(reduce_func, str):
             assert reduce_func in ["mean", "mode", "min", "max", "median"]
@@ -78,13 +79,13 @@ class GroupByReduce(Transformation):
         if isinstance(self.reduce_func, Transformation):
             assert self.reduce_func.expects_data
         #assert isinstance(self.key_feature, FeatureValue), "key_feature must be an existing feature!"
-        assert self.key_feature.shape == data.shape # type: ignore[attr-defined]
+        assert self.key_feature.shape == data.shape # type: ignore
         # FeatureValue has weird behavior with np.unique
-        key_feature_value = self.key_feature.value # type: ignore[attr-defined]
+        key_feature_value = self.key_feature.value # type: ignore
 
-        sorted_idxs = key_feature_value.argsort() # type: ignore[attr-defined]
+        sorted_idxs = key_feature_value.argsort() # type: ignore
         data_sorted = data[sorted_idxs]
-        key_feature_sorted = key_feature_value[sorted_idxs]
+        key_feature_sorted = key_feature_value[sorted_idxs] # type: ignore
 
         _, unqiue_indeces, counts = np.unique(key_feature_sorted, return_index=True, return_counts=True)
         data_aggregated =  np.split(data_sorted, unqiue_indeces[1:])
@@ -95,7 +96,7 @@ class GroupByReduce(Transformation):
         if isinstance(self.reduce_func, Transformation):
             data_reduced = self.reduce_func.execute(data_aggregated)
         else:
-            data_reduced = self.reduce_func(data_aggregated, self.axis) # type: ignore[operator]
+            data_reduced = self.reduce_func(data_aggregated, self.axis) # type: ignore
         # Use np.unique to find the unique key values and the counts for each
         _, inverse_indices = np.unique(key_feature_value, return_inverse=True)
         # Use np.repeat to assign the reduced values to the original positions

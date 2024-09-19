@@ -5,7 +5,7 @@ from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig
 
-from .utils import get_logger
+from feature_fabrica.utils import get_logger
 
 logger = get_logger()
 

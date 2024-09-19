@@ -53,3 +53,22 @@ feature_f:
   transformation:
     strip:
       _target_: feature_fabrica.transform.Strip
+
+complex_operation:
+  description: "Raw feature F"
+  data_type: "float32"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    divide:
+      _target_: feature_fabrica.transform.DivideTransform
+      _recursive_: True
+      numerator:
+        _target_: feature_fabrica.models.PromiseValue
+        apply_transform:
+          _target_: feature_fabrica.transform.SumReduce
+          iterable: ["feature_a", "feature_b"]
+      denominator:
+        _target_: feature_fabrica.models.PromiseValue
+        apply_transform:
+          _target_: feature_fabrica.transform.SumReduce
+          iterable: ["feature_a", "feature_b"]

@@ -1,5 +1,6 @@
 # models.py
 import hashlib
+from collections.abc import Callable
 from typing import Any, Optional
 
 import numpy as np
@@ -25,14 +26,20 @@ class FeatureSpec(BaseModel):
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
         return v
 
+
 class PromiseValue(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     value: np.ndarray | None = None
     data_type: str | None = None
+    apply_transform: Callable | None = None
 
     @beartype
-    def __call__(self, data: np.ndarray):
-        self.value = data
+    def __call__(self, data: np.ndarray | None = None):
+        if self.apply_transform:
+            result = self.apply_transform()
+            self.value = result.value
+        else:
+            self.value = data
 
     def __setattr__(self, name, value):
        if name == "value" and isinstance(value, np.ndarray):
