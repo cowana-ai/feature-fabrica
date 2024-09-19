@@ -1,0 +1,38 @@
+defaults:
+  - _self_
+  - basic_features
+
+sum_ab_divide_sum_ab:
+  description: "(a + b) / (a + b)"
+  data_type: "float32"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    divide:
+      _target_: feature_fabrica.transform.DivideTransform
+      numerator:
+        _target_: feature_fabrica.models.PromiseValue
+        apply_transform:
+          _target_: feature_fabrica.transform.SumReduce
+          iterable: ["feature_a", "feature_b"]
+      denominator:
+        _target_: feature_fabrica.models.PromiseValue
+        apply_transform:
+          _target_: feature_fabrica.transform.SumReduce
+          iterable: ["feature_a", "feature_b"]
+
+a_multiple_b2:
+  description: "a * b * 2"
+  data_type: "float32"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    import:
+      _target_: feature_fabrica.transform.FeatureImporter
+      feature: "feature_a"
+    scale:
+      _target_: feature_fabrica.transform.ScaleFeature
+      factor:
+        _target_: feature_fabrica.transform.PromiseValue
+        apply_transform:
+          _target_: feature_fabrica.transform.FeatureImporter
+          features:
+            - feature_b: scale_feature

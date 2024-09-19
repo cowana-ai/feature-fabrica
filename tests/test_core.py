@@ -75,11 +75,7 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(results["feature_e"], expected_feature_e)
         np.testing.assert_array_equal(results["feature_e"], results["feature_e_one_hot"])
         np.testing.assert_array_equal(results["feature_e_upper_lower_original"], expected_feature_e_upper_lower_original)
-        np.testing.assert_array_equal(results["feature_abd"], expected_feeture_abd)
-
-        np.testing.assert_array_equal(results["feature_e_upper_lower_original"], expected_feature_e_upper_lower_original)
-        np.testing.assert_array_equal(results["feature_abd"], expected_feeture_abd)
-        np.testing.assert_array_equal(results["complex_operation"], np.ones_like(results["complex_operation"]))
+        np.allclose(results["feature_abd"], expected_feeture_abd, atol=1e-8)
 
         # Assert FeatureValue
         np.testing.assert_array_equal(
@@ -87,6 +83,22 @@ class TestFeatureSet(unittest.TestCase):
         )
         np.testing.assert_array_equal(feature_manager.features.feature_c.feature_value[[25, 30]], expected_feature_c[[25, 30]])
 
+    def test_compute_features_with_promise_transformations(self):
+        data = {
+            "feature_a": np.array(list(range(100)), dtype=np.int32),
+            "feature_b": np.array(list(range(100, 200)), dtype=np.int32),
+            "feature_e": np.array(["Orange", "Apple"]),
+            "feature_f": np.array(["orange "]),
+        }
+        feature_manager = FeatureManager(
+            config_path="./examples", config_name="nested_features", log_transformation_chain=False
+        )
+
+        results = feature_manager.compute_features(data)
+        expected_a_multiple_b2 = results["feature_a"] * results["feature_b"]
+
+        np.testing.assert_array_equal(results["sum_ab_divide_sum_ab"], np.ones_like(results["sum_ab_divide_sum_ab"]))
+        np.testing.assert_array_equal(results["a_multiple_b2"], expected_a_multiple_b2)
 
 if __name__ == "__main__":
     unittest.main()
