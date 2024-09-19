@@ -67,7 +67,7 @@ class Feature:
             The computed feature value.
         """
         if self.promised and PROMISE_MANAGER.is_promised(self.name):
-            PROMISE_MANAGER.pass_data(data=value, feature=self.name)
+            PROMISE_MANAGER.pass_data(data=value, base_name=self.name)
 
         # Apply the transformation function if specified
         if self.transformation:
@@ -84,7 +84,7 @@ class Feature:
                     prev_value = result_dict.value
 
                     if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
-                        PROMISE_MANAGER.pass_data(data=result_dict.value, feature=self.name, transform_stage=transformation_name)
+                        PROMISE_MANAGER.pass_data(data=result_dict.value, base_name=self.name, suffix=transformation_name)
 
                     if self.log_transformation_chain:
                         self.update_transformation_chain(
