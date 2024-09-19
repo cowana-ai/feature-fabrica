@@ -53,9 +53,10 @@ class PromiseManager(ABC):
         """Decorator to manage promises before executing the function."""
         def wrapper(transformation, *args, **kwargs):
             # Resolve all PromiseValues in the transformation
+            transformation_id = str(id(transformation))
             if transformation.expects_promise:
                 for i in range(transformation.expects_promise):
-                    key = self._generate_key(base_name=str(id(transformation)), suffix=str(i))
+                    key = self._generate_key(base_name=transformation_id, suffix=str(i))
                     promise_value = self.promised_memo[key]
                     promise_value()
                     del self.promised_memo[key]
