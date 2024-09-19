@@ -31,7 +31,7 @@ class Transformation(ABC):
                     setattr(self, attr_name, features[attr_value].feature_value)
                 elif isinstance(attr_value, Transformation):
                     attr_value.compile(features)
-                elif isinstance(attr_value, PromiseValue) and attr_value.apply_transform is not None:
+                elif isinstance(attr_value, PromiseValue) and isinstance(attr_value.apply_transform, Transformation):
                     attr_value.apply_transform.compile(features) # type: ignore
                 elif isinstance(attr_value, Iterable):
                     setattr(
