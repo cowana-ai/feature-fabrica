@@ -40,7 +40,7 @@ class PromiseValue(BaseModel):
 
     @beartype
     def __call__(self, data: np.ndarray | None = None):
-        if self.apply_transform:
+        if self.apply_transform is not None:
             result = self.apply_transform()
             self._set_value(result.value)
         else:
