@@ -19,6 +19,8 @@
     <img src="https://img.shields.io/github/issues/cowana-ai/feature-fabrica?style=flat-square" alt="Issues"/>
     <img src="https://img.shields.io/github/license/cowana-ai/feature-fabrica?style=flat-square" alt="License"/>
     <img src="https://img.shields.io/github/contributors/cowana-ai/feature-fabrica?style=flat-square" alt="Contributors"/>
+    <img src="https://app.codacy.com/project/badge/Grade/5df9f22c8a2d49a08058bf8a660b086c" alt="Code Quality"/>
+
 </p>
 
 For **data scientists, ML engineers**, and **AI researchers** who want to simplify feature engineering, manage complex dependencies, and boost productivity.
