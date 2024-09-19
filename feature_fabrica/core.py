@@ -30,9 +30,7 @@ class Feature:
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
         self.transformation = instantiate(self.spec.transformation)
-        self.feature_value = PromiseValue(
-            value=None, data_type=self.spec.data_type
-        )
+        self.feature_value = PromiseValue(data_type=self.spec.data_type)
 
         self.log_transformation_chain = log_transformation_chain
         self.transformation_chain_head = THead()
@@ -101,7 +99,7 @@ class Feature:
                 raise e
             value = result_dict.value
 
-        self.feature_value.value = value
+        self.feature_value(value)
         return self.feature_value.value  # type: ignore[attr-defined]
 
     @logger.catch(reraise=True)
