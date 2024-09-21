@@ -5,6 +5,7 @@ from beartype import beartype
 
 from feature_fabrica.models import PromiseValue
 
+promise_memo = None
 
 class PromiseManager(ABC):
     def __init__(self):
@@ -53,7 +54,8 @@ class PromiseManager(ABC):
         """Decorator to manage promises before executing the function."""
         def wrapper(transformation, *args, **kwargs):
             # Resolve all PromiseValues in the transformation
-            if transformation.expects_promise:
+            #print(func.__name__, func.__name__ == 'compile', *args)
+            if func.__name__ == '__call__' and transformation.expects_promise:
                 transformation_obj_id = str(id(transformation))
                 for i in range(transformation.expects_promise):
                     key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
@@ -64,3 +66,9 @@ class PromiseManager(ABC):
             return func(transformation, *args, **kwargs)
 
         return wrapper
+
+def get_promise_manager():
+    global promise_memo
+    if not promise_memo:
+        promise_memo = PromiseManager()
+    return promise_memo

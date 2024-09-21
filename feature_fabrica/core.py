@@ -10,7 +10,8 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
-from feature_fabrica.utils import (get_logger, get_promise_manager,
+from feature_fabrica.promise_manager import get_promise_manager
+from feature_fabrica.utils import (compute_all_transformations, get_logger,
                                    verify_dependencies)
 from feature_fabrica.yaml_parser import load_yaml
 
@@ -70,34 +71,24 @@ class Feature:
         # Apply the transformation function if specified
         if self.transformation:
             try:
-                prev_value = value
-                for (
-                    transformation_name,
-                    transformation_obj,
-                ) in self.transformation.items():
-                    if transformation_obj.expects_data:
-                        result_dict = transformation_obj(prev_value)
-                    else:
-                        result_dict = transformation_obj()
-                    prev_value = result_dict.value
+                result = compute_all_transformations(self.transformation, initial_value=value, get_intermediate_results=self.promised or self.log_transformation_chain)
+                if self.promised or self.log_transformation_chain:
+                    result, intermediate_results = result
+                    for transformation_name, result_dict in intermediate_results:
+                        if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
+                            PROMISE_MANAGER.pass_data(data=result_dict.value, base_name=self.name, suffix=transformation_name)
 
-                    if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
-                        PROMISE_MANAGER.pass_data(data=result_dict.value, base_name=self.name, suffix=transformation_name)
-
-                    if self.log_transformation_chain:
-                        self.update_transformation_chain(
-                            transformation_name, result_dict
-                        )
+                        if self.log_transformation_chain:
+                            self.update_transformation_chain(
+                                transformation_name, result_dict
+                            )
 
             except Exception as e:
                 if self.log_transformation_chain:
                     transformation_chain_str = self.get_transformation_chain()
                     logger.debug(transformation_chain_str)
-                logger.error(
-                    f"An error occurred during the transformation {transformation_name}: {e}"
-                )
                 raise e
-            value = result_dict.value
+            value = result.value
 
         self.feature_value(value)
         return self.feature_value.value  # type: ignore[attr-defined]

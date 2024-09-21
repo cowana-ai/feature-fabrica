@@ -133,6 +133,7 @@ class SqrtTransform(Transformation):
 
 class PowerTransform(Transformation):
     def __init__(self, power: float):
+        super().__init__()
         self.power = power
 
     @beartype

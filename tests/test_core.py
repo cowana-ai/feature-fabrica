@@ -96,9 +96,15 @@ class TestFeatureSet(unittest.TestCase):
 
         results = feature_manager.compute_features(data)
         expected_a_multiple_b2 = results["feature_a"] * results["feature_b"]
+        expected_sum_ab_divide_sum_ab =  np.ones_like(results["sum_ab_divide_sum_ab"])
+        expected_sum_ab2_divide_sum_ab = np.ones_like(results["sum_ab_divide_sum_ab"]) * 2
+        expected_sum_square_divide_sum = results["feature_a"] + results["feature_b"]
 
-        np.testing.assert_array_equal(results["sum_ab_divide_sum_ab"], np.ones_like(results["sum_ab_divide_sum_ab"]))
+        np.testing.assert_array_equal(results["sum_ab_divide_sum_ab"], expected_sum_ab_divide_sum_ab)
         np.testing.assert_array_equal(results["a_multiple_b2"], expected_a_multiple_b2)
+        np.testing.assert_array_equal(results["sum_ab2_divide_sum_ab"], expected_sum_ab2_divide_sum_ab)
+        np.testing.assert_array_equal(results["sum_square_divide_sum"], expected_sum_square_divide_sum)
+
 
 if __name__ == "__main__":
     unittest.main()

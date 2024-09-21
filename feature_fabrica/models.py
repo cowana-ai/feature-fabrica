@@ -8,6 +8,8 @@ from beartype import beartype
 from pydantic import (BaseModel, ConfigDict, Field, PrivateAttr,
                       root_validator, validator)
 
+from feature_fabrica.utils import compute_all_transformations
+
 
 class FeatureSpec(BaseModel):
     description: str
@@ -31,7 +33,7 @@ class FeatureSpec(BaseModel):
 class PromiseValue(BaseModel):
     _value: np.ndarray | None = PrivateAttr(default=None)  # Internal attribute
     data_type: str | None = None
-    apply_transform: Callable | None = None
+    transformation: Callable | dict[str, Callable] | None = None
 
     @property
     def value(self) -> np.ndarray | None:
@@ -40,8 +42,8 @@ class PromiseValue(BaseModel):
 
     @beartype
     def __call__(self, data: np.ndarray | None = None):
-        if self.apply_transform is not None:
-            result = self.apply_transform()
+        if self.transformation is not None:
+            result = compute_all_transformations(self.transformation)
             self._set_value(result.value)
         else:
             if self._value is not None:

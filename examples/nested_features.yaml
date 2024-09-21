@@ -11,12 +11,12 @@ sum_ab_divide_sum_ab:
       _target_: feature_fabrica.transform.DivideTransform
       numerator:
         _target_: feature_fabrica.models.PromiseValue
-        apply_transform:
+        transformation:
           _target_: feature_fabrica.transform.SumReduce
           iterable: ["feature_a", "feature_b"]
       denominator:
         _target_: feature_fabrica.models.PromiseValue
-        apply_transform:
+        transformation:
           _target_: feature_fabrica.transform.SumReduce
           iterable: ["feature_a", "feature_b"]
 
@@ -32,7 +32,59 @@ a_multiple_b2:
       _target_: feature_fabrica.transform.ScaleFeature
       factor:
         _target_: feature_fabrica.transform.PromiseValue
-        apply_transform:
+        transformation:
           _target_: feature_fabrica.transform.FeatureImporter
           features:
             - feature_b: scale_feature
+
+sum_ab2_divide_sum_ab:
+  description: "(a + b) * 2 / (a + b)"
+  data_type: "float32"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    divide:
+      _target_: feature_fabrica.transform.DivideTransform
+      numerator:
+        _target_: feature_fabrica.models.PromiseValue
+        transformation:
+          sum_ab:
+            _target_: feature_fabrica.transform.SumReduce
+            iterable: ["feature_a", "feature_b"]
+          scale:
+            _target_: feature_fabrica.transform.ScaleFeature
+            factor: 2
+      denominator:
+        _target_: feature_fabrica.models.PromiseValue
+        transformation:
+          _target_: feature_fabrica.transform.SumReduce
+          iterable: ["feature_a", "feature_b"]
+
+sum_square_divide_sum:
+  description: "((a + b) * (a + b)) / (a + b)"
+  data_type: "float32"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    divide:
+      _target_: feature_fabrica.transform.DivideTransform
+      numerator:
+        _target_: feature_fabrica.models.PromiseValue
+        transformation:
+          multiply:
+            _target_: feature_fabrica.transform.MultiplyReduce
+            iterable:
+              - _target_: feature_fabrica.models.PromiseValue
+                transformation:
+                  sum_ab:
+                    _target_: feature_fabrica.transform.SumReduce
+                    iterable: ["feature_a", "feature_b"]
+              - _target_: feature_fabrica.models.PromiseValue
+                transformation:
+                  sum_ab:
+                    _target_: feature_fabrica.transform.SumReduce
+                    iterable: ["feature_a", "feature_b"]
+      denominator:
+        _target_: feature_fabrica.models.PromiseValue
+        transformation:
+          sum_ab:
+            _target_: feature_fabrica.transform.SumReduce
+            iterable: ["feature_a", "feature_b"]
