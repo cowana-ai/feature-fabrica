@@ -69,9 +69,7 @@ class Transformation(ABC):
                         continue
                     # Resolve here
                     # Set resolved values appropriately
-                    if is_list_like(cur_obj):
-                        cur_obj[cur_name] = cur_value
-                    elif is_dict_like(cur_obj):
+                    if is_list_like(cur_obj) or is_dict_like(cur_obj):
                         cur_obj[cur_name] = cur_value
                     else:
                         setattr(cur_obj, cur_name, cur_value)
