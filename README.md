@@ -57,21 +57,24 @@ pip install feature-fabrica
 
 ### **Defining Features in YAML**
 
-Features are defined in a YAML file. Here’s an example:
+Features are defined in a YAML file. See examples in `examples/` folder. Here’s an example:
 
 ```yaml
 feature_a:
   description: "Raw feature A"
   data_type: "float32"
+  group: "training_prod"
 
 feature_b:
   description: "Raw feature B"
   data_type: "float32"
+  group: "training_experimental"
 
 feature_c:
   description: "Derived feature C"
   data_type: "float32"
   dependencies: ["feature_a", "feature_b"]
+  group: "training_prod"
   transformation:
     sum_fn:
       _target_: feature_fabrica.transform.SumReduce
@@ -158,17 +161,75 @@ feature_manager.get_visual_dependency_graph()
 
 ![image.png](media/example.png)
 
-## **Contributing**
+# Contributing to Feature Fabrica
 
-We welcome contributions to **Feature Fabrica**! If you have ideas for new features, improvements, or if you'd like to report issues, feel free to open a pull request or an issue on GitHub.
+First, thank you for taking the time to contribute! 🎉 Contributions are essential to making **Feature Fabrica** a better library, and we truly appreciate your involvement.
 
-### How to Contribute
+The following is a set of guidelines for contributing to **Feature Fabrica**, including reporting bugs, adding new features, and improving documentation.
 
-1. **Fork** the repository to your own GitHub account.
-2. **Clone** your fork locally.
-3. **Create a new branch** for your feature or fix.
-4. **Commit your changes** with a clear and concise message.
-5. **Push** to the branch.
-6. **Open a pull request** from your fork to the original repository.
+## Table of Contents
 
-We look forward to your contributions! 😄
+1. [How to Contribute](#how-to-contribute)
+2. [Reporting Bugs](#reporting-bugs)
+3. [Suggesting Enhancements](#suggesting-enhancements)
+
+______________________________________________________________________
+
+## How to Contribute
+
+### Fork and Clone the Repo
+
+1. **Fork** the repository to your own GitHub account by clicking the "Fork" button at the top of the page.
+
+2. **Clone** your fork locally:
+
+   ```bash
+   git clone https://github.com/your-username/feature-fabrica.git
+   cd feature-fabrica
+   ```
+
+3. Set the original repository as a remote:
+
+   ```bash
+   git remote add upstream https://github.com/cowana-ai/feature-fabrica.git
+   ```
+
+4. Before creating a new branch, ensure your `main` branch is up-to-date:
+
+   ```bash
+   git checkout main
+   git pull upstream main
+   ```
+
+### Create a Branch
+
+1. Create a new branch for your feature or bug fix:
+
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+2. Make your changes in this new branch.
+
+______________________________________________________________________
+
+## Reporting Bugs
+
+If you discover a bug in **Feature Fabrica**, please [open an issue](https://github.com/cowana-ai/feature-fabrica/issues) on GitHub. Before submitting your report, please check if an issue already exists to avoid duplicates. Include the following details in your report:
+
+- A clear and concise description of the bug.
+- Steps to reproduce the issue.
+- Expected behavior vs. actual behavior.
+- If applicable, screenshots or code snippets.
+
+______________________________________________________________________
+
+## Suggesting Enhancements
+
+We welcome suggestions to improve **Feature Fabrica**. Feel free to [open an issue](https://github.com/cowana-ai/feature-fabrica/issues) describing the enhancement. Please be as detailed as possible in describing:
+
+- The feature you'd like to see.
+- The reason it would be beneficial.
+- Any potential drawbacks.
+
+______________________________________________________________________
