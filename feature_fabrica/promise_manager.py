@@ -31,7 +31,7 @@ class PromiseManager(ABC):
 
     @beartype
     def is_promised_any(self, base_name: str) -> bool:
-        return any(base_name in key for key in self.promised_memo)
+        return any(base_name == key.split(':')[0] for key in self.promised_memo)
 
     @beartype
     def pass_data(self, data: np.ndarray, base_name: str, suffix: str | None = None, finally_delete_key: bool = False):
@@ -43,7 +43,7 @@ class PromiseManager(ABC):
 
     @beartype
     def delete_all_related_keys(self, base_name: str):
-        keys_to_delete = [key for key in self.promised_memo if base_name in key]
+        keys_to_delete = [key for key in self.promised_memo if base_name == key.split(':')[0]]
         for key in keys_to_delete:
             del self.promised_memo[key]
 
@@ -55,9 +55,9 @@ class PromiseManager(ABC):
         def wrapper(transformation, *args, **kwargs):
             # Resolve all PromiseValues in the transformation
             #print(func.__name__, func.__name__ == 'compile', *args)
-            if func.__name__ == '__call__' and transformation.expects_promise:
+            if func.__name__ == '__call__' and transformation.expects_executable_promise:
                 transformation_obj_id = str(id(transformation))
-                for i in range(transformation.expects_promise):
+                for i in range(transformation.expects_executable_promise):
                     key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
                     promise_value = self.promised_memo[key]
                     promise_value()

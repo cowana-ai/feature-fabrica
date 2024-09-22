@@ -45,7 +45,11 @@ class FeatureImporter(Transformation):
                     features_to_import.append((feature, transform_stage))
         promise_manager = get_promise_manager()
         # Initialize PromiseValues for each feature
-        self.data: list[PromiseValue] = [promise_manager.get_promise_value(feature, transform_stage) for (feature, transform_stage) in features_to_import]
+        self.data: list[PromiseValue] = [
+            promise_manager.get_promise_value(base_name=feature, suffix=transform_stage)
+            for (feature, transform_stage) in features_to_import
+        ]
+
     @beartype
     def execute(self) -> AnyArray | list[AnyArray]:
         if len(self.data) == 1:

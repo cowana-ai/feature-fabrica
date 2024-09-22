@@ -39,7 +39,7 @@ class Feature:
         self.transformation_ptr = self.transformation_chain_head
 
         self.computed = False
-        self.promised: bool = PROMISE_MANAGER.is_promised_any(self.name)
+        self.promised: bool = False
 
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
@@ -49,7 +49,7 @@ class Feature:
                 transformation_obj,
             ) in self.transformation.items():
                 transformation_obj.compile(dependencies)
-
+        self.promised = PROMISE_MANAGER.is_promised_any(self.name)
         return
 
     @logger.catch(reraise=True)
