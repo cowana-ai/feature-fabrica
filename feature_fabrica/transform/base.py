@@ -34,9 +34,9 @@ class Transformation(ABC):
                     continue
                 stack: list[tuple[Any, Any, Any]] = [(self, attr_name, attr_value)]
                 while stack:
-                    cur_obj, cur_name, cur_value = stack.pop()
+                    cur_obj, cur_attr, cur_value = stack.pop()
                     if not is_list_like(cur_obj) and not is_dict_like(cur_obj):
-                        key = cur_obj.__class__.__name__ + '.' + cur_name
+                        key = cur_obj.__class__.__name__ + '.' + cur_attr
                         memo[key] = 1
 
                     # If cur_value is str and in features -> resolved immediately
@@ -70,9 +70,9 @@ class Transformation(ABC):
                     # Resolve here
                     # Set resolved values appropriately
                     if is_list_like(cur_obj) or is_dict_like(cur_obj):
-                        cur_obj[cur_name] = cur_value
+                        cur_obj[cur_attr] = cur_value
                     else:
-                        setattr(cur_obj, cur_name, cur_value)
+                        setattr(cur_obj, cur_attr, cur_value)
 
 
 
