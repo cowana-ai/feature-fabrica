@@ -30,6 +30,7 @@ class Feature:
 
         self.spec = FeatureSpec(**spec)
         self.dependencies = self.spec.dependencies
+        self.group = self.spec.group
         self.transformation = instantiate(self.spec.transformation)
         self.feature_value = PromiseValue(data_type=self.spec.data_type)
 
@@ -160,6 +161,8 @@ class FeatureManager:
         self.dependent_features: list[Feature] = []
         self.queue: dict[int, list[Feature]] = defaultdict(list)
 
+        self.grouped_features: dict[str, list[Feature]] = defaultdict(list)
+
         self.features: edict = self._build_features()
         self.compile()
 
@@ -188,6 +191,10 @@ class FeatureManager:
                 self.independent_features.append(feature)
             else:
                 self.dependent_features.append(feature)
+
+            if feature.group:
+                self.grouped_features[feature.group].append(feature)
+
 
             features[name] = feature
 
@@ -304,7 +311,7 @@ class FeatureManager:
 
     @slowmobeartype
     def compute_features_with_validation(
-        self, data_keys: list[str], data_values: list[np.ndarray]
+        self, data_keys: list[str], data_values: list[np.ndarray], select_groups: list[str] | None = None
     ) -> edict:
         """
 
@@ -346,11 +353,18 @@ class FeatureManager:
                     )
                     results[feature_name] = result
 
+        if select_groups:
+            results = {}
+            for group in select_groups:
+                features_group = self.grouped_features[group]
+                for feature in features_group:
+                    results[feature.name] = feature.feature_value.value
+
         return edict(results)
 
-    def compute_features(self, data: dict[str, np.ndarray]) -> edict:
+    def compute_features(self, data: dict[str, np.ndarray], select_groups: list[str] | None = None) -> edict:
         return self.compute_features_with_validation(
-            list(data.keys()), list(data.values())
+            list(data.keys()), list(data.values()), select_groups
         )
 
     def get_visual_dependency_graph(

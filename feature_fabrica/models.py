@@ -14,6 +14,7 @@ from feature_fabrica.utils import compute_all_transformations
 class FeatureSpec(BaseModel):
     description: str
     data_type: str
+    group: str  | None = None
     dependencies: list[str] | None = Field(default_factory=list)
     transformation: dict | None = Field(default_factory=dict)
 

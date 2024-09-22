@@ -2,10 +2,12 @@
 feature_a:
   description: "Raw feature A"
   data_type: "int32"
+  group: "training"
 
 feature_b:
   description: "Raw feature B"
   data_type: "float32"
+  group: "training"
   transformation:
     scale_feature:
       _target_: feature_fabrica.transform.ScaleFeature
@@ -14,6 +16,7 @@ feature_b:
 feature_d:
   description: "Derived feature D"
   data_type: "float32"
+  group: "training"
   dependencies: ["feature_a"]
   transformation:
     sum_fn:
@@ -26,6 +29,7 @@ feature_d:
 feature_c:
   description: "Derived feature C"
   data_type: "float32"
+  group: "training"
   dependencies: ["feature_a", "feature_b"]
   transformation:
     sum_fn:
@@ -38,6 +42,7 @@ feature_c:
 feature_e:
   description: "Raw feature E"
   data_type: "int32"
+  group: "draft"
   transformation:
     upper:
       _target_: feature_fabrica.transform.ToUpper
@@ -50,6 +55,7 @@ feature_e:
 feature_f:
   description: "Raw feature F"
   data_type: "str_"
+  group: "target"
   transformation:
     strip:
       _target_: feature_fabrica.transform.Strip
