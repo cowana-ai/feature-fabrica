@@ -21,10 +21,10 @@ promise_manager = get_promise_manager()
 class Transformation(ABC):
     def __init__(self) -> None:
         self.expects_data = False
-        self.expects_promise = 0
+        self.expects_executable_promise = 0
 
     def compile(self, features: dict[str, Feature] | None = None) -> bool:
-        promise_count = 0
+        executable_promise_count = 0
         if features is not None:
             memo: dict[str, int] = defaultdict(int)
             memo["expects_data"] = 1
@@ -52,8 +52,8 @@ class Transformation(ABC):
                     elif isinstance(cur_value, PromiseValue):
                         if cur_value.transformation is not None:
                             stack.append((cur_value, 'transformation', cur_value.transformation))
-                            promise_manager.set_promise_value(cur_value, base_name=str(id(self)), suffix=str(promise_count))
-                            promise_count += 1
+                            promise_manager.set_promise_value(cur_value, base_name=str(id(self)), suffix=str(executable_promise_count))
+                            executable_promise_count += 1
                         continue
 
                     # If cur_value is Iterable -> iterate recursively
@@ -87,7 +87,7 @@ class Transformation(ABC):
                 f"Expected 1 argument, but got {len(execute_params) - 1}."
             )
         # assert hasattr(self, "expects_data")
-        self.expects_promise = promise_count
+        self.expects_executable_promise = executable_promise_count
         self.expects_data = len(execute_params) == 1
         return self.expects_data
 
