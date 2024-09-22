@@ -1,11 +1,13 @@
 from setuptools import find_packages, setup
 
+from feature_fabrica import __version__
+
 with open("README.md", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name="feature_fabrica",
-    version="1.2.1",
+    version=__version__,
     packages=find_packages(),
     url="https://github.com/cowana-ai/feature-fabrica",
     include_package_data=True,
