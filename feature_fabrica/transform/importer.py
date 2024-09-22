@@ -6,9 +6,10 @@ import numpy as np
 from beartype import beartype
 from omegaconf import DictConfig, ListConfig
 
+from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import AnyArray
-from feature_fabrica.utils import get_logger, get_promise_manager
+from feature_fabrica.utils import get_logger
 
 if TYPE_CHECKING:
     from feature_fabrica.models import PromiseValue
@@ -28,27 +29,26 @@ class FeatureImporter(Transformation):
             A single transform stage to apply to all features unless individually specified.
         """
         super().__init__()
-        self.features_to_import = []
+        features_to_import = []
         if not (features or feature):
             raise ValueError("features or feature should be set.")
         # Deprecate the 'feature' argument
         if feature is not None:
             logger.warning("'feature' is deprecated and will be removed in a future version. Use 'features' instead.")
-            self.features_to_import.append((feature, transform_stage))
+            features_to_import.append((feature, transform_stage))
         else:
             # If features is a list, extract feature names and associated stages
             for feature in features: # type: ignore[union-attr]
                 if isinstance(feature, DictConfig):
-                    self.features_to_import.append(next(iter(feature.items())))
+                    features_to_import.append(next(iter(feature.items())))
                 else:
-                    self.features_to_import.append((feature, transform_stage))
+                    features_to_import.append((feature, transform_stage))
         promise_manager = get_promise_manager()
         # Initialize PromiseValues for each feature
-        self.data: list[PromiseValue] = [promise_manager.get_promise_value(feature, transform_stage) for (feature, transform_stage) in self.features_to_import]
-
+        self.data: list[PromiseValue] = [promise_manager.get_promise_value(feature, transform_stage) for (feature, transform_stage) in features_to_import]
     @beartype
     def execute(self) -> AnyArray | list[AnyArray]:
-        if len(self.features_to_import) == 1:
+        if len(self.data) == 1:
             return self.data[0].value
         else:
             imported_list = [promise_value.value for promise_value in self.data]

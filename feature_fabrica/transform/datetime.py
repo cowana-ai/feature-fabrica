@@ -167,6 +167,7 @@ class ExtractDayofWeek(Transformation):
         -------
         None.
         """
+        super().__init__()
         self.feature = feature
         self.return_name = return_name
         if self.feature:

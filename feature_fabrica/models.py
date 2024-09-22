@@ -1,10 +1,14 @@
 # models.py
 import hashlib
+from collections.abc import Callable
 from typing import Any, Optional
 
 import numpy as np
 from beartype import beartype
-from pydantic import BaseModel, ConfigDict, Field, root_validator, validator
+from pydantic import (BaseModel, ConfigDict, Field, PrivateAttr,
+                      root_validator, validator)
+
+from feature_fabrica.utils import compute_all_transformations
 
 
 class FeatureSpec(BaseModel):
@@ -25,27 +29,36 @@ class FeatureSpec(BaseModel):
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
         return v
 
+
 class PromiseValue(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    value: np.ndarray | None = None
+    _value: np.ndarray | None = PrivateAttr(default=None)  # Internal attribute
     data_type: str | None = None
+    transformation: Callable | dict[str, Callable] | None = None
+
+    @property
+    def value(self) -> np.ndarray | None:
+        """Read-only property for value."""
+        return self._value
 
     @beartype
-    def __call__(self, data: np.ndarray):
-        self.value = data
+    def __call__(self, data: np.ndarray | None = None):
+        if self.transformation is not None:
+            result = compute_all_transformations(self.transformation)
+            self._set_value(result.value)
+        else:
+            if self._value is not None:
+                raise ValueError("Value is already set.")
+            self._set_value(data)
 
-    def __setattr__(self, name, value):
-       if name == "value" and isinstance(value, np.ndarray):
-           # Once value is set, transform the instance into FeatureValue
-           object.__setattr__(self, name, value)
-           data_type = self.data_type or value.dtype.name
-           # Replace this object in the current scope with a FeatureValue
-           new_instance = FeatureValue(value=value, data_type='str_' if 'str' in data_type else value.dtype.name)
-           # Overwrite the current instance with the new FeatureValue
-           self.__class__ = new_instance.__class__
-           self.__dict__ = new_instance.__dict__
-       else:
-           super().__setattr__(name, value)
+    def _set_value(self, value: np.ndarray | None):
+        """Internal method to set value and transform to FeatureValue."""
+        self._value = value
+        if value is not None:
+            data_type = self.data_type or value.dtype.name
+            # Transform to a FeatureValue instance
+            new_instance = FeatureValue(value=value, data_type='str_' if 'str' in data_type else data_type)
+            self.__class__ = new_instance.__class__
+            self.__dict__ = new_instance.__dict__
 
 class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assignment=True):  # type: ignore[call-arg]
     model_config = ConfigDict(arbitrary_types_allowed=True)
