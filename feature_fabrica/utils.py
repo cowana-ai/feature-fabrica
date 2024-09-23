@@ -8,7 +8,11 @@ from beartype import beartype
 from loguru import logger
 from omegaconf import DictConfig, ListConfig
 
+from feature_fabrica._internal.instantiate._instantiate import instantiate
 from feature_fabrica.exceptions import CyclicDependencyError
+
+# Instantiation related symbols
+instantiate = instantiate
 
 logger_set = False
 
@@ -70,6 +74,7 @@ def is_dict_like(x: DictConfig | dict[Any, Any]) -> bool:
 
 def compute_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], initial_value: np.ndarray | None = None, get_intermediate_results: bool = False):
     intermediate_results = []
+    print(transformations)
     if is_dict_like(transformations):
         prev_value = initial_value
         for (

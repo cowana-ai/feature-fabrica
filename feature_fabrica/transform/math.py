@@ -64,6 +64,9 @@ class MultiplyReduce(BaseReduce):
 class SubtractReduce(BaseReduce):
     ufunc = np.subtract
 
+class DivideReduce(BaseReduce):
+    ufunc = np.divide
+
 class DivideTransform(Transformation):
     @beartype
     def __init__(

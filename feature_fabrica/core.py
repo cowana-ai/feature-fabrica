@@ -6,13 +6,12 @@ import numpy as np
 from beartype import BeartypeConf, BeartypeStrategy, beartype
 from easydict import EasyDict as edict
 from graphviz import Digraph
-from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
 from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.utils import (compute_all_transformations, get_logger,
-                                   verify_dependencies)
+                                   instantiate, verify_dependencies)
 from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()

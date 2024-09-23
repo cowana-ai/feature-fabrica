@@ -25,17 +25,8 @@ a_multiple_b2:
   data_type: "float32"
   dependencies: ["feature_a", "feature_b"]
   transformation:
-    import:
-      _target_: feature_fabrica.transform.FeatureImporter
-      feature: "feature_a"
-    scale:
-      _target_: feature_fabrica.transform.ScaleFeature
-      factor:
-        _target_: feature_fabrica.transform.PromiseValue
-        transformation:
-          _target_: feature_fabrica.transform.FeatureImporter
-          features:
-            - feature_b: scale_feature
+    solve:
+      _target_: "feature_a * feature_b / 2"
 
 sum_ab2_divide_sum_ab:
   description: "(a + b) * 2 / (a + b)"
