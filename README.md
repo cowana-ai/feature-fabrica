@@ -167,6 +167,13 @@ First, thank you for taking the time to contribute! 🎉 Contributions are essen
 
 The following is a set of guidelines for contributing to **Feature Fabrica**, including reporting bugs, adding new features, and improving documentation.
 
+## Roadmap
+
+- NLP support
+- Embeddings support
+- Simplify UI
+- Better visualizations/reports
+
 ## Table of Contents
 
 1. [How to Contribute](#how-to-contribute)
