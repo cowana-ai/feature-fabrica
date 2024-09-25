@@ -117,6 +117,7 @@ class ScaleFeature(Transformation):
 
 
 class LogTransform(Transformation):
+    _name_ = "log"
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.log(data)

@@ -1,17 +1,19 @@
 import copy
+from collections.abc import Callable
 from textwrap import dedent
 from typing import Any
 
 from hydra._internal.instantiate._instantiate2 import (
     _call_target, _convert_node, _is_target, _Keys,
-    _prepare_input_dict_or_list, _resolve_target)
+    _prepare_input_dict_or_list)
+from hydra._internal.utils import _locate
 from hydra.errors import InstantiationException
 from hydra.types import ConvertMode, TargetConf
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from omegaconf._utils import is_structured_config
 
-from feature_fabrica._internal.instantiate.expressions.math_expressions import (
-    _hydrate_math_expression, _is_valid_math_expression)
+from feature_fabrica._internal.instantiate.expressions.fefa_expressions import (
+    _hydrate_fefa_expression, _is_valid_expression)
 
 
 def instantiate(config: Any, *args: Any, **kwargs: Any) -> Any:
@@ -20,7 +22,6 @@ def instantiate(config: Any, *args: Any, **kwargs: Any) -> Any:
                    In addition to the parameters, the config must contain:
                    _target_ : target class or callable name (str)
                    And may contain:
-                   _args_: List-like of positional arguments to pass to the target
                    _recursive_: Construct nested objects as well (bool).
                                 True by default.
                                 may be overridden via a _recursive_ key in
@@ -128,7 +129,52 @@ def instantiate(config: Any, *args: Any, **kwargs: Any) -> Any:
             )
         )
 
+def _resolve_target(
+    target: str | type | Callable[..., Any], full_key: str
+) -> type | Callable[..., Any]:
+    """Resolve target string, type or callable into type or callable."""
+    if isinstance(target, str):
+        if _is_valid_expression(target):
+            hydrated_target = _hydrate_fefa_expression(target)
+            return hydrated_target
+        try:
+            target = _locate(target)
+        except Exception as e:
+            msg = f"Error locating target '{target}', set env var HYDRA_FULL_ERROR=1 to see chained exception."
+            if full_key:
+                msg += f"\nfull_key: {full_key}"
+            raise InstantiationException(msg) from e
+    if not callable(target):
+        msg = f"Expected a callable target, got '{target}' of type '{type(target).__name__}'"
+        if full_key:
+            msg += f"\nfull_key: {full_key}"
+        raise InstantiationException(msg)
+    return target
 
+def _resolve_target_node(node: DictConfig, args: Any, full_key: str, convert: str | ConvertMode = ConvertMode.NONE,
+                         recursive: bool = True, partial: bool = False,):
+    exclude_keys = set({"_target_", "_convert_", "_recursive_", "_partial_"})
+    _target_ = _resolve_target(node.get(_Keys.TARGET), full_key)
+    if OmegaConf.is_config(_target_):
+        if _is_target(_target_):
+            return _resolve_target_node(_target_, args, full_key, convert, recursive, partial)
+        else:
+            return instantiate_node(_target_, args, full_key, convert, recursive, partial)
+
+    kwargs = {}
+    is_partial = node.get("_partial_", False) or partial
+    for key in node.keys():
+        if key not in exclude_keys:
+            if OmegaConf.is_missing(node, key) and is_partial:
+                continue
+            value = node[key]
+            if recursive:
+                value = instantiate_node(
+                    value, convert=convert, recursive=recursive
+                )
+            kwargs[key] = _convert_node(value, convert)
+
+    return _call_target(_target_, partial, args, kwargs, full_key)
 
 def instantiate_node(
     node: Any,
@@ -137,6 +183,7 @@ def instantiate_node(
     recursive: bool = True,
     partial: bool = False,
 ) -> Any:
+
     # Return None if config is None
     if node is None or (OmegaConf.is_config(node) and node._is_none()):
         return None
@@ -183,28 +230,9 @@ def instantiate_node(
             return lst
 
     elif OmegaConf.is_dict(node):
-        exclude_keys = set({"_target_", "_convert_", "_recursive_", "_partial_"})
         if _is_target(node):
-            if _is_valid_math_expression(node.get(_Keys.TARGET)):
-                math_expression = node.get(_Keys.TARGET)
-                hydrated_node = _hydrate_math_expression(math_expression)
-                node = OmegaConf.merge(node, hydrated_node)
+            return _resolve_target_node(node, args, full_key, convert, recursive, partial)
 
-            _target_ = _resolve_target(node.get(_Keys.TARGET), full_key)
-            kwargs = {}
-            is_partial = node.get("_partial_", False) or partial
-            for key in node.keys():
-                if key not in exclude_keys:
-                    if OmegaConf.is_missing(node, key) and is_partial:
-                        continue
-                    value = node[key]
-                    if recursive:
-                        value = instantiate_node(
-                            value, convert=convert, recursive=recursive
-                        )
-                    kwargs[key] = _convert_node(value, convert)
-
-            return _call_target(_target_, partial, args, kwargs, full_key)
         else:
             # If ALL or PARTIAL non structured or OBJECT non structured,
             # instantiate in dict and resolve interpolations eagerly.

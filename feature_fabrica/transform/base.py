@@ -8,20 +8,26 @@ from typing import TYPE_CHECKING, Any
 
 from easydict import EasyDict as edict
 
+from feature_fabrica._internal.compute import is_dict_like, is_list_like
 from feature_fabrica.models import PromiseValue
 from feature_fabrica.promise_manager import get_promise_manager
-from feature_fabrica.utils import get_logger, is_dict_like, is_list_like
+from feature_fabrica.transform.registry import TransformationRegistry
 
 if TYPE_CHECKING:
     from feature_fabrica.core import Feature
 
-logger = get_logger()
 promise_manager = get_promise_manager()
 
 class Transformation(ABC):
+    _name_: str | None = None
+
     def __init__(self) -> None:
         self.expects_data = False
         self.expects_executable_promise = 0
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        TransformationRegistry.register(cls)
 
     def compile(self, features: dict[str, Feature] | None = None) -> bool:
         executable_promise_count = 0

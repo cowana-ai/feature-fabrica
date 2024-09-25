@@ -9,14 +9,13 @@ from omegaconf import DictConfig, ListConfig
 from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import AnyArray
-from feature_fabrica.utils import get_logger
 
 if TYPE_CHECKING:
     from feature_fabrica.models import PromiseValue
 
-logger = get_logger()
 
 class FeatureImporter(Transformation):
+    _name_ = "import"
     @beartype
     def __init__(self, features: ListConfig[str | DictConfig[str, str]] | None = None, feature: str | None = None, transform_stage: str | None = None):
         """
@@ -34,7 +33,6 @@ class FeatureImporter(Transformation):
             raise ValueError("features or feature should be set.")
         # Deprecate the 'feature' argument
         if feature is not None:
-            logger.warning("'feature' is deprecated and will be removed in a future version. Use 'features' instead.")
             features_to_import.append((feature, transform_stage))
         else:
             # If features is a list, extract feature names and associated stages

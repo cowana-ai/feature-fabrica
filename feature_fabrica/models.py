@@ -8,7 +8,7 @@ from beartype import beartype
 from pydantic import (BaseModel, ConfigDict, Field, PrivateAttr,
                       root_validator, validator)
 
-from feature_fabrica.utils import compute_all_transformations
+from feature_fabrica._internal.compute import compute_all_transformations
 
 
 class FeatureSpec(BaseModel):

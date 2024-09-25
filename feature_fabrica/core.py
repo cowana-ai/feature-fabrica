@@ -8,10 +8,10 @@ from easydict import EasyDict as edict
 from graphviz import Digraph
 from omegaconf import DictConfig
 
+from feature_fabrica._internal.compute import compute_all_transformations
 from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
 from feature_fabrica.promise_manager import get_promise_manager
-from feature_fabrica.utils import (compute_all_transformations, get_logger,
-                                   instantiate, verify_dependencies)
+from feature_fabrica.utils import get_logger, instantiate, verify_dependencies
 from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()
