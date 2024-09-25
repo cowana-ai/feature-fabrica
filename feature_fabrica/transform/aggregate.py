@@ -60,6 +60,7 @@ DEAFULT_REDUCTIONS = dict(
     )
 
 class GroupByReduce(Transformation):
+    _name_ = "group_reduce"
     @beartype
     def __init__(self, key_feature: str | PromiseValue, reduce_func: Transformation | str = "mean", axis: int = -1):
         super().__init__()

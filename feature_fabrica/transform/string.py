@@ -11,17 +11,20 @@ from feature_fabrica.transform.utils import StrArray, StrValue
 
 
 class ToLower(Transformation):
+    _name_ = "lower"
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
         return np.char.lower(data)
 
 
 class ToUpper(Transformation):
+    _name_ = "upper"
     @beartype
     def execute(self, data: StrArray | StrValue) -> StrArray | StrValue:
         return np.char.upper(data)
 
 class ConcatenateReduce(Transformation):
+    _name_ = "concat"
     def __init__(self, iterable: Iterable | None = None, expects_data: bool = False, axis: int=-1):
         super().__init__()
         assert iterable or expects_data, "Either expect_data or iterable should be set!"
@@ -52,6 +55,7 @@ class ConcatenateReduce(Transformation):
         return reduce(np.char.add, iterable_with_data)
 
 class Strip(Transformation):
+    _name_ = "strip"
     def __init__(self, chars: str | None = None):
         super().__init__()
         self.chars = chars
@@ -62,6 +66,7 @@ class Strip(Transformation):
 
 
 class Split(Transformation):
+    _name_ = "split"
     def __init__(self, delimiter: str):
         super().__init__()
         self.delimiter = delimiter
@@ -72,6 +77,7 @@ class Split(Transformation):
 
 
 class OneHotEncode(Transformation):
+    _name_ = "one_hot"
     def __init__(self, categories: list[str] | None=None, **kwargs):
         super().__init__()
         self.encoder = OneHotEncoder(dtype=np.int32, **kwargs)
@@ -97,6 +103,7 @@ class OneHotEncode(Transformation):
 
 
 class LabelEncode(Transformation):
+    _name_ = "label_encode"
     def __init__(self, categories: list[str] | None = None):
         super().__init__()
         self.encoder = LabelEncoder()
@@ -119,6 +126,7 @@ class LabelEncode(Transformation):
 
 
 class OrdinalEncode(Transformation):
+    _name_ = "ordinal_encode"
     def __init__(self, categories: list[str] | None = None, **kwargs):
         super().__init__()
         self.encoder = OrdinalEncoder(dtype=np.int32, **kwargs)
@@ -142,6 +150,7 @@ class OrdinalEncode(Transformation):
 
 
 class BinaryEncode(Transformation):
+    _name_ = "binary_encode"
     def __init__(self, categories: list[str] | None = None):
         super().__init__()
         self.categories = categories

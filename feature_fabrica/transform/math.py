@@ -68,6 +68,7 @@ class DivideReduce(BaseReduce):
     ufunc = np.divide
 
 class DivideTransform(Transformation):
+    _name_ = "divide"
     @beartype
     def __init__(
         self,
@@ -106,6 +107,7 @@ class DivideTransform(Transformation):
 
 
 class ScaleFeature(Transformation):
+    _name_ = "scale"
     @beartype
     def __init__(self, factor: PromiseValue | NumericValue):
         super().__init__()
@@ -124,19 +126,23 @@ class LogTransform(Transformation):
 
 
 class ExpTransform(Transformation):
+    _name_ = "exp"
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.exp(data)
 
 
 class SqrtTransform(Transformation):
+    _name_ = "sqrt"
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.sqrt(data)
 
 
 class PowerTransform(Transformation):
-    def __init__(self, power: float):
+    _name_ = "pow"
+    @beartype
+    def __init__(self, power: float | int):
         super().__init__()
         self.power = power
 
@@ -145,11 +151,13 @@ class PowerTransform(Transformation):
         return data**self.power
 
 class ABSTransform(Transformation):
+    _name_ = "abs"
     @beartype
     def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
         return np.abs(data)
 
 class ZScoreTransform(Transformation):
+    _name_ = "z_score"
     @beartype
     def __init__(self, mean: NumericValue | PromiseValue | None = None, std_dev: NumericValue | PromiseValue | None = None, axis: int = -1):
         super().__init__()
@@ -174,6 +182,7 @@ class ZScoreTransform(Transformation):
         return z_normalized
 
 class ClipTransform(Transformation):
+    _name_ = "clip"
     @beartype
     def __init__(self, min: NumericValue | PromiseValue, max: NumericValue | PromiseValue):
         super().__init__()
@@ -186,6 +195,7 @@ class ClipTransform(Transformation):
 
 
 class MinMaxTransform(Transformation):
+    _name_ = "min_max"
     @beartype
     def __init__(self, min: NumericValue | PromiseValue | None = None, max: NumericValue | PromiseValue | None = None, axis: int = -1):
         super().__init__()
@@ -212,6 +222,7 @@ class MinMaxTransform(Transformation):
         return min_max_normalized
 
 class KBinsDiscretize(Transformation):
+    _name_ = "kbins_discretize"
     @beartype
     def __init__(self,n_bins: NumericValue | PromiseValue = 5, encode: str = 'onehot',
                  strategy: str = 'quantile',  subsample: NumericValue | PromiseValue | None = 200000, **kwargs):

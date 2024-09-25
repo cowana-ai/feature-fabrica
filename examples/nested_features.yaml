@@ -26,7 +26,7 @@ a_multiple_b2:
   dependencies: ["feature_a", "feature_b"]
   transformation:
     solve:
-      _target_: "(2 + 2).log() * 2"
+      _target_: "feature_a * feature_b"
 
 sum_ab2_divide_sum_ab:
   description: "(a + b) * 2 / (a + b)"
