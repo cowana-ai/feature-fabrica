@@ -1,3 +1,4 @@
+import ast
 import keyword
 import re
 from collections import deque
@@ -48,17 +49,19 @@ def _is_valid_expression(expression: str) -> bool:
     # Remove any empty strings that may result from the split
     split_expression = [token.strip() for token in split_expression if token.strip()]
 
-    if not split_expression or len(split_expression) < 3:
+    if not split_expression:
         return False
 
     needs_operand = True
+    can_be_initital_data = True
     needs_operator = False
     # Iterate through each part of the split expression
     for token in split_expression:
         if not needs_operator and token == '(':
             parentheses_counter += 1
             needs_operand = True
-        elif not needs_operand and token == ')':
+            continue
+        elif (not needs_operand or can_be_initital_data) and token == ')':
             parentheses_counter -= 1
             needs_operand = False
             needs_operator = True
@@ -73,6 +76,7 @@ def _is_valid_expression(expression: str) -> bool:
             needs_operand = False
         else:
             return False
+        can_be_initital_data = False
     # Check if all parentheses were closed
     return parentheses_counter == 0 and not needs_operand
 
@@ -125,9 +129,26 @@ def split_function_call(expression: str):
 
     if match:
         function_name = match.group(1)  # Get the function name
-        arguments = match.group(2).split(',')  # Split the arguments by comma
-        arguments = [arg.strip() for arg in arguments if arg.strip()]  # Remove whitespace
-        return function_name, arguments  # Return function name and arguments as a list
+        arguments_str = match.group(2).strip()  # Get the arguments as a string
+
+        # Parse arguments using ast
+        try:
+            # Parse the function call arguments using ast
+            parsed_args = ast.parse(f"f({arguments_str})").body[0].value.args # type: ignore[attr-defined]
+            parsed_keywords = ast.parse(f"f({arguments_str})").body[0].value.keywords # type: ignore[attr-defined]
+
+            # Check if there are any positional arguments
+            if parsed_args and not parsed_keywords:
+                raise ValueError("Positional arguments are not allowed.")
+
+            # Convert the AST nodes back into readable Python objects for keyword arguments
+            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in parsed_keywords}
+
+            return function_name, kwargs  # Return only keyword arguments as a dictionary
+
+        except Exception as e:
+            print(f"Error parsing arguments: {e}")
+            return None
     return None
 
 
@@ -143,38 +164,29 @@ def _hydrate_fefa_expression(expression: str, validate_expression: bool = False)
             if is_numeric(token) or is_valid_variable_name(token):  # If it's a variable or number
                 stack.append(token)
             elif is_function(token):
-                if len(stack) < 1:
-                    raise ValueError(f"Insufficient operands for operator '{token}'")
-                a = stack.pop()
                 # Step 1: Split the token into function name and arguments
-                fn_name_and_kwargs = split_function_call(token)
-
-                if fn_name_and_kwargs:
-                    fn_name = fn_name_and_kwargs[0]  # Get function name
-                    kwargs_str = fn_name_and_kwargs[1]  # Get the list of arguments
-                    # Step 2: Convert the arguments into a dictionary
-                    kwargs = {}
-                    for arg in kwargs_str:
-                        if '=' in arg:  # Check if it's a keyword argument
-                            key, value = arg.split('=', 1)
-                            kwargs[key.strip()] = eval(value.strip())  # Use eval for dynamic evaluation
-                        else:
-                            kwargs[arg.strip()] = None  # Or handle non-keyword arguments as needed
-
-                    # Step 3: Retrieve the transformation class and instantiate it
-                    fn_class = TransformationRegistry.get_transformation_class_by_name(fn_name)
-                else:
-                    raise ValueError("Invalid function call format.")
+                fn_name, kwargs = split_function_call(token)
+                # Step 2: Retrieve the transformation class and instantiate it
+                fn_class = TransformationRegistry.get_transformation_class_by_name(fn_name)
 
                 _hydrated_fn_class = {
                     "_target_": fn_class,
                     **kwargs
                 }
-                if isinstance(a, dict):
-                    stack.append({f"fn_{count_individual_steps}": a,
-                     f"fn_{count_individual_steps + 1}": _hydrated_fn_class,
-                    })
-                    count_individual_steps += 2
+
+                a = stack.pop() if stack else None
+                if a is None:
+                    stack.append(_hydrated_fn_class)
+                elif isinstance(a, dict):
+                    if _is_target(a):
+                        stack.append({f"fn_{count_individual_steps}": a,
+                         f"fn_{count_individual_steps + 1}": _hydrated_fn_class,
+                        })
+                        count_individual_steps += 2
+                    else:
+                        a[f"fn_{count_individual_steps}"] = _hydrated_fn_class
+                        count_individual_steps += 1
+                        stack.append(a)
                 else:
                     if is_numeric(a) or not is_valid_variable_name(a):
                         raise ValueError()

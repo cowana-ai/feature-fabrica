@@ -41,3 +41,20 @@ def compute_all_transformations(transformations: Callable | list[Callable] | dic
         result = transformations(initial_value) if transformations.expects_data else transformations()  # type: ignore
 
     return (result, intermediate_results) if get_intermediate_results else result
+
+def compile_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], dependencies):
+    if is_dict_like(transformations):
+        for (
+            transformation_name,
+            transformation_fn,
+        ) in transformations.items(): # type: ignore[union-attr]
+            transformation_fn.compile(dependencies) # type: ignore
+
+    elif is_list_like(transformations):
+        for (
+            idx,
+            transformation_fn,
+        ) in enumerate(transformations): # type: ignore
+            transformation_fn.compile(dependencies) # type: ignore[attr-defined]
+    else:
+        transformations.compile(dependencies)  # type: ignore

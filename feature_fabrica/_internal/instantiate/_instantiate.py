@@ -93,9 +93,11 @@ def instantiate(config: Any, *args: Any, **kwargs: Any) -> Any:
         _convert_ = config.pop(_Keys.CONVERT, ConvertMode.NONE)
         _partial_ = config.pop(_Keys.PARTIAL, False)
 
-        return instantiate_node(
+        instantiated_config = instantiate_node(
             config, *args, recursive=_recursive_, convert=_convert_, partial=_partial_
         )
+
+        return instantiated_config
     elif OmegaConf.is_list(config):
         # Finalize config (convert targets to strings, merge with kwargs)
         config_copy = copy.deepcopy(config)
@@ -116,9 +118,11 @@ def instantiate(config: Any, *args: Any, **kwargs: Any) -> Any:
                 "The _partial_ keyword is not compatible with top-level list instantiation"
             )
 
-        return instantiate_node(
+        instantiated_config = instantiate_node(
             config, *args, recursive=_recursive_, convert=_convert_, partial=_partial_
         )
+        return instantiated_config
+
     else:
         raise InstantiationException(
             dedent(
@@ -231,7 +235,8 @@ def instantiate_node(
 
     elif OmegaConf.is_dict(node):
         if _is_target(node):
-            return _resolve_target_node(node, args, full_key, convert, recursive, partial)
+            resolved_target_node = _resolve_target_node(node, args, full_key, convert, recursive, partial)
+            return resolved_target_node
 
         else:
             # If ALL or PARTIAL non structured or OBJECT non structured,
@@ -243,17 +248,28 @@ def instantiate_node(
                 dict_items = {}
                 for key, value in node.items():
                     # list items inherits recursive flag from the containing dict.
-                    dict_items[key] = instantiate_node(
+                    instantiated_node = instantiate_node(
                         value, convert=convert, recursive=recursive
                     )
+                    if OmegaConf.is_dict(instantiated_node):
+                        for node_key, node_value in instantiated_node.items():
+                            dict_items[f"{key}_{node_key}"] = node_value
+                    else:
+                        dict_items[key] = instantiated_node
+
                 return dict_items
             else:
                 # Otherwise use DictConfig and resolve interpolations lazily.
                 cfg = OmegaConf.create({}, flags={"allow_objects": True})
                 for key, value in node.items():
-                    cfg[key] = instantiate_node(
+                    instantiated_node = instantiate_node(
                         value, convert=convert, recursive=recursive
                     )
+                    if OmegaConf.is_dict(instantiated_node):
+                        for node_key, node_value in instantiated_node.items():
+                            cfg[f"{key}_{node_key}"] = node_value
+                    else:
+                        cfg[key] = instantiated_node
                 cfg._set_parent(node)
                 cfg._metadata.object_type = node._metadata.object_type
                 if convert == ConvertMode.OBJECT:
