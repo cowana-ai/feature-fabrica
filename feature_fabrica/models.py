@@ -16,7 +16,7 @@ class FeatureSpec(BaseModel):
     data_type: str
     group: str  | None = None
     dependencies: list[str] | None = Field(default_factory=list)
-    transformation: dict | None = Field(default_factory=dict)
+    transformation: dict | list | None = Field(default_factory=dict)
 
     @validator("data_type")
     def validate_data_type(cls, v):
