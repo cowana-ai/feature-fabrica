@@ -121,6 +121,17 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(results["sum_ab2_divide_sum_ab"], expected_sum_ab2_divide_sum_ab)
         np.testing.assert_array_equal(results["sum_square_divide_sum"], expected_sum_square_divide_sum)
 
+    def test_compute_features_with_aggregations(self):
+        data = {
+            "feature_a": np.array([1,1, 2,2, 3, 3], dtype=np.int32),
+            "feature_b": np.array([2, 5, 2, 6, 2, 9], dtype=np.int32),
+        }
+        feature_manager = FeatureManager(
+            config_path="./examples", config_name="aggregated_features", log_transformation_chain=False
+        )
+
+        results = feature_manager.compute_features(data)
+        np.testing.assert_array_equal(results["feature_b"], np.array([3.5, 3.5, 4, 4, 5.5, 5.5]))
 
 if __name__ == "__main__":
     unittest.main()
