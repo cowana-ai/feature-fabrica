@@ -16,10 +16,15 @@ BASIC_MATH_OPERATORS = {
     '*': {'precedence': 2, 'transformation': 'MultiplyReduce'},
     '/': {'precedence': 2, 'transformation': 'DivideReduce'},
 }
+FUNCTION_PATTERN = r'\.(\w+)\((.*)\)'
+TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[()+\-*/]')
 
 def is_operator(token: str) -> bool:
     """Check if the token is a mathematical operator."""
     return token in BASIC_MATH_OPERATORS
+
+def get_precedence(token: str) -> int:
+    return BASIC_MATH_OPERATORS[token]['precedence'] # type: ignore[return-value]
 
 def get_transformation(op: str) -> str:
     """Get the corresponding transformation for the given operator."""
@@ -39,15 +44,15 @@ def is_numeric(token: str) -> bool:
 
 def is_function(token: str) -> bool:
     """Check if the token represents a function call."""
-    return token.startswith('.')
+    match = re.match(FUNCTION_PATTERN, token.strip())
+    return match is not None and match.group() == token
 
 def tokenize(expression: str) -> list[str]:
     """Tokenize the feature-fabrica expression into numbers, variable names, operators, and functions.
 
     Supports decimal numbers and function calls with parameters.
     """
-    token_pattern = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[()+\-*/]')
-    tokens = re.findall(token_pattern, expression)
+    tokens = re.findall(TOKEN_PATTERN, expression)
     return tokens
 
 def _is_valid_expression(expression: str) -> bool:
@@ -93,19 +98,6 @@ def _is_valid_expression(expression: str) -> bool:
 
 def infix_fefa_expression_to_postfix(expression: str) -> list[str]:
     """Convert an infix feature-fabrica expression to postfix feature-fabrica."""
-    OPERATORS = {
-        '+': {'precedence': 1},
-        '-': {'precedence': 1},
-        '*': {'precedence': 2},
-        '/': {'precedence': 2}
-    }
-
-    def is_operator(token):
-        return token in OPERATORS
-
-    def precedence(token):
-        return OPERATORS[token]['precedence']
-
     # Tokenize the expression
     tokens = tokenize(expression)
     output = []
@@ -124,7 +116,7 @@ def infix_fefa_expression_to_postfix(expression: str) -> list[str]:
             operator_stack.pop()  # Remove '('
         elif is_operator(token):
             while (operator_stack and operator_stack[-1] != '(' and
-                   precedence(token) <= precedence(operator_stack[-1])):
+                   get_precedence(token) <= get_precedence(operator_stack[-1])):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
 
@@ -135,8 +127,7 @@ def infix_fefa_expression_to_postfix(expression: str) -> list[str]:
     return output
 
 def split_function_call(expression: str) -> tuple[str, dict[str, Any]]: # type: ignore[return-value]
-    pattern = r'\.(\w+)\((.*)\)'
-    match = re.match(pattern, expression.strip())
+    match = re.match(FUNCTION_PATTERN, expression.strip())
 
     if match:
         function_name = match.group(1)  # Get the function name
