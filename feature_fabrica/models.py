@@ -5,8 +5,7 @@ from typing import Any, Optional
 
 import numpy as np
 from beartype import beartype
-from pydantic import (BaseModel, ConfigDict, Field, PrivateAttr,
-                      root_validator, validator)
+from pydantic import BaseModel, ConfigDict, Field, validator
 
 from feature_fabrica.utils import compute_all_transformations
 
@@ -30,76 +29,9 @@ class FeatureSpec(BaseModel):
             raise ValueError(f"Invalid data_type: {v}, error: {str(e)}")
         return v
 
-
-class PromiseValue(BaseModel):
-    _value: np.ndarray | None = PrivateAttr(default=None)  # Internal attribute
-    data_type: str | None = None
-    transformation: Callable | dict[str, Callable] | None = None
-
-    @property
-    def value(self) -> np.ndarray | None:
-        """Read-only property for value."""
-        return self._value
-
-    @beartype
-    def __call__(self, data: np.ndarray | None = None):
-        if self.transformation is not None:
-            result = compute_all_transformations(self.transformation)
-            self._set_value(result.value)
-        else:
-            if self._value is not None:
-                raise ValueError("Value is already set.")
-            self._set_value(data)
-
-    def _set_value(self, value: np.ndarray | None):
-        """Internal method to set value and transform to FeatureValue."""
-        self._value = value
-        if value is not None:
-            data_type = self.data_type or value.dtype.name
-            # Transform to a FeatureValue instance
-            new_instance = FeatureValue(value=value, data_type='str_' if 'str' in data_type else data_type)
-            self.__class__ = new_instance.__class__
-            self.__dict__ = new_instance.__dict__
-
-class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assignment=True):  # type: ignore[call-arg]
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    value: np.ndarray = Field(default=None)
-    data_type: str
-
-    @root_validator(pre=True)
-    def validate_value(cls, values):
-        v = values.get("value")
-        data_type = values.get("data_type")
-        # Allow PromiseValue without validation
-        if isinstance(v, PromiseValue):
-            return values
-
-        # Get the expected data type from numpy
-        try:
-            expected_dtype = getattr(np, data_type)
-        except AttributeError:
-            raise ValueError(f"Unsupported data type '{data_type}', use valid numpy dtype!")
-
-        # Check if the value is a NumPy array
-        if not isinstance(v, np.ndarray):
-            raise ValueError(f"Value must be a NumPy array, got {type(v).__name__} instead.")
-
-        # Validate that the array dtype matches or is compatible with the expected dtype
-        # TODO: make casting type configurable
-        if not (np.issubdtype(v.dtype.type, expected_dtype) or np.can_cast(v.dtype.type, expected_dtype, casting="unsafe")):
-            raise ValueError(
-                f"Array dtype '{v.dtype}' does not match or is not compatible with expected type '{data_type}'"
-            )
-
-        # Optionally, convert to the desired type if compatible
-        if v.dtype.type is not expected_dtype:
-            try:
-                v = v.astype(expected_dtype)
-            except TypeError:
-                raise ValueError(f"Failed to convert array to expected dtype '{data_type}'.")
-        values["value"] = v  # Update the value in the values dictionary
-        return values
+class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
+    def __getattr__(self, name):
+        return getattr(self.value, name)
 
     def __array__(self, dtype=None, copy=None):
         # Automatically converts to np.ndarray when passed to a function that expects an array
@@ -109,7 +41,7 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         # Convert inputs to their underlying values if they are FeatureValue instances
-        inputs = tuple(x.value if isinstance(x, FeatureValue) else x for x in inputs)
+        inputs = tuple(x.value if isinstance(x, ArrayLike) else x for x in inputs)
 
         # Perform the operation using the ufunc
         result = getattr(ufunc, method)(*inputs, **kwargs)
@@ -117,7 +49,7 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
 
     def __array_function__(self, func, types, args, kwargs):
         # Convert args to their underlying values if they are FeatureValue instances
-        args = tuple(x.value if isinstance(x, FeatureValue) else x for x in args)
+        args = tuple(x.value if isinstance(x, ArrayLike) else x for x in args)
         # Perform the operation using the function
         result = func(*args, **kwargs)
         return result
@@ -125,11 +57,30 @@ class FeatureValue(np.lib.mixins.NDArrayOperatorsMixin, BaseModel, validate_assi
     def __getitem__(self, idx):
         return self.value[idx]
 
-    def __getattr__(self, name):
-        return getattr(self.value, name)
+
+class PromiseValue(ArrayLike, BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    value: np.ndarray = Field(default=None)
+    data_type: str | None = None
+    transformation: Callable | dict[str, Callable] | None = None
+
+    @beartype
+    def __call__(self, data: np.ndarray | None = None):
+        if self.transformation is not None:
+            result = compute_all_transformations(self.transformation)
+            self._set_value(result.value)
+        else:
+
+            self._set_value(data)
+
+    def _set_value(self, value: np.ndarray | None):
+        """Internal method to set value and transform to FeatureValue."""
+        self.value = value
 
     def __repr__(self):
-        return f"FeatureValue(value={self.value})"
+        return f"PromiseValue(value={self._value})"
+
 
 class TNode(BaseModel):
     transformation_name: str

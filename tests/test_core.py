@@ -33,6 +33,11 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(results.feature_e, np.array([[0, 1]]))
         self.assertEqual(results["feature_f"], "orange")  # 0.5 * (10 + 20 * 2)
 
+        data["feature_a"] = np.array([30], dtype=np.int32)
+        data["feature_b"] = np.array([40], dtype=np.int32)
+        results = feature_manager.compute_features(data)
+        self.assertEqual(results["feature_c"], 55.0)  # 0.5 * (30 + 40 * 2)
+
     def test_select_groups(self):
         data = {
             "feature_a": np.array([10], dtype=np.int32),

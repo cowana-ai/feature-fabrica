@@ -1,5 +1,6 @@
 # core.py
 import concurrent.futures
+import copy
 from collections import defaultdict
 
 import numpy as np
@@ -72,7 +73,7 @@ class Feature:
         # Apply the transformation function if specified
         if self.transformation:
             try:
-                result = compute_all_transformations(self.transformation, initial_value=value, get_intermediate_results=self.promised or self.log_transformation_chain)
+                result = compute_all_transformations(copy.deepcopy(self.transformation), initial_value=value, get_intermediate_results=self.promised or self.log_transformation_chain)
                 if self.promised or self.log_transformation_chain:
                     result, intermediate_results = result
                     for transformation_name, result_dict in intermediate_results:
@@ -97,7 +98,7 @@ class Feature:
     @logger.catch(reraise=True)
     def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
         result = self.compute(value)
-        self.finalize_feature()
+        #self.finalize_feature()
         return result
 
     def finalize_feature(self):
