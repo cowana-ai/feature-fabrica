@@ -61,7 +61,7 @@ class PromiseManager(ABC):
                     key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
                     promise_value = self.promised_memo[key]
                     promise_value()
-                    del self.promised_memo[key]
+                    #del self.promised_memo[key]
             # Call the original transformation method
             return func(transformation, *args, **kwargs)
 

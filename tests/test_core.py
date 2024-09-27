@@ -28,10 +28,15 @@ class TestFeatureSet(unittest.TestCase):
         self.assertEqual(results["feature_c"], 25.0)  # 0.5 * (10 + 20 * 2)
         self.assertEqual(results.feature_c, 25.0)  # 0.5 * (10 + 20 * 2)
         self.assertEqual(
-            feature_manager.features.feature_c.feature_value.value, 25.0
+            feature_manager.features.feature_c.feature_value._get_value(), 25.0
         )  # 0.5 * (10 + 20)
         np.testing.assert_array_equal(results.feature_e, np.array([[0, 1]]))
         self.assertEqual(results["feature_f"], "orange")  # 0.5 * (10 + 20 * 2)
+
+        data["feature_a"] = np.array([30], dtype=np.int32)
+        data["feature_b"] = np.array([40], dtype=np.int32)
+        results = feature_manager.compute_features(data)
+        self.assertEqual(results["feature_c"], 55.0)  # 0.5 * (30 + 40 * 2)
 
     def test_select_groups(self):
         data = {
@@ -74,7 +79,7 @@ class TestFeatureSet(unittest.TestCase):
         self.assertIsInstance(results["feature_c"], np.ndarray)
         self.assertIsInstance(results.feature_c, np.ndarray)
         self.assertIsInstance(
-            feature_manager.features.feature_c.feature_value.value, np.ndarray
+            feature_manager.features.feature_c.feature_value._get_value(), np.ndarray
         )
         np.testing.assert_array_equal(results["feature_c"], expected_feature_c)
         np.testing.assert_array_equal(results.feature_c, expected_feature_c)
@@ -93,7 +98,7 @@ class TestFeatureSet(unittest.TestCase):
 
         # Assert FeatureValue
         np.testing.assert_array_equal(
-            feature_manager.features.feature_c.feature_value.value, expected_feature_c
+            feature_manager.features.feature_c.feature_value._get_value(), expected_feature_c
         )
         np.testing.assert_array_equal(feature_manager.features.feature_c.feature_value[[25, 30]], expected_feature_c[[25, 30]])
 

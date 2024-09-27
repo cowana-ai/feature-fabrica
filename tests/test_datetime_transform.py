@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from easydict import EasyDict as edict
 
-from feature_fabrica.models import FeatureValue
+from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform import (DateTimeAdd, DateTimeDifference,
                                        DateTimeExtract, DateTimeSubtract,
                                        ExtractDayofWeek)
@@ -62,7 +62,7 @@ class TestDateTimeTransform(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
         transform = DateTimeAdd(time_delta=2, compute_unit='D', feature='feature_a')
-        feature_value = FeatureValue(value=data, data_type='datetime64')
+        feature_value = PromiseValue(value=data, data_type='datetime64')
         example = edict({'feature_a': {'feature_value': feature_value}})
         transform.compile(example)
         result = transform.execute()
@@ -77,7 +77,7 @@ class TestDateTimeTransform(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
         transform = DateTimeAdd(time_delta=5, compute_unit='h', feature='feature_a')
-        feature_value = FeatureValue(value=data, data_type='datetime64')
+        feature_value = PromiseValue(value=data, data_type='datetime64')
         example = edict({'feature_a': {'feature_value': feature_value}})
         transform.compile(example)
         result = transform.execute()
@@ -92,7 +92,7 @@ class TestDateTimeTransform(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
         transform = DateTimeSubtract(time_delta=2, compute_unit='D', feature='feature_a')
-        feature_value = FeatureValue(value=data, data_type='datetime64')
+        feature_value = PromiseValue(value=data, data_type='datetime64')
         example = edict({'feature_a': {'feature_value': feature_value}})
         transform.compile(example)
         result = transform.execute()
@@ -106,7 +106,7 @@ class TestDateTimeTransform(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
         transform = DateTimeSubtract(time_delta=5, compute_unit='h', feature='feature_a')
-        feature_value = FeatureValue(value=data, data_type='datetime64')
+        feature_value = PromiseValue(value=data, data_type='datetime64')
         example = edict({'feature_a': {'feature_value': feature_value}})
         transform.compile(example)
         result = transform.execute()
@@ -206,7 +206,7 @@ class TestDateTimeTransform(unittest.TestCase):
 
         # Test case using the default method with numeric output
         data = np.array(['2024-09-11', '2024-09-12', '2024-09-13'], dtype='datetime64[D]')
-        feature_value = FeatureValue(value=data, data_type='datetime64')
+        feature_value = PromiseValue(value=data, data_type='datetime64')
         example = edict({'feature_a': {'feature_value': feature_value}})
         extractor = ExtractDayofWeek(feature='feature_a', return_name=False)
         extractor.compile(example)
