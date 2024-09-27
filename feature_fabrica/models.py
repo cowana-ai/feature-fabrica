@@ -30,6 +30,8 @@ class FeatureSpec(BaseModel):
         return v
 
 class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
+    """Mixin class to enable NumPy-like operations for custom models."""
+
     def _get_value(self):
         raise NotImplementedError()
 
@@ -37,30 +39,29 @@ class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
         raise NotImplementedError()
 
     def __array__(self, dtype=None, copy=None):
-        # Automatically converts to np.ndarray when passed to a function that expects an array
+        """Automatic conversion to NumPy array when passed to NumPy functions."""
         if dtype:
             return self._get_value().astype(dtype)
         return self._get_value().copy() if copy else self._get_value()
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        # Convert inputs to their underlying values if they are FeatureValue instances
+        """Handle NumPy universal functions (e.g., np.add, np.multiply)."""
         inputs = tuple(x._get_value() if isinstance(x, ArrayLike) else x for x in inputs)
-
-        # Perform the operation using the ufunc
         result = getattr(ufunc, method)(*inputs, **kwargs)
         return result
 
     def __array_function__(self, func, types, args, kwargs):
-        # Convert args to their underlying values if they are FeatureValue instances
+        """Handle array functions like np.mean, np.sum, etc."""
         args = tuple(x._get_value() if isinstance(x, ArrayLike) else x for x in args)
-        # Perform the operation using the function
         result = func(*args, **kwargs)
         return result
 
     def __getitem__(self, idx):
+        """Enable indexing like a NumPy array."""
         return self._get_value()[idx]
 
     def __getattr__(self, name):
+        """Enable attribute access for underlying NumPy array properties."""
         return getattr(self._get_value(), name)
 
 
@@ -123,36 +124,43 @@ class PromiseValue(ArrayLike, BaseModel):
 
 
 class TNode(BaseModel):
+    """Transformation node for tracking transformation metadata."""
     transformation_name: str
     start_time: float
     end_time: float
     shape: tuple | None = None
     time_taken: float | None = None
     output_hash: str | None = None
-    next: Optional["TNode"] = None  # Forward reference
+    next: Optional["TNode"] = None
 
     def to_dict(self) -> dict[str, Any]:
-        # Convert the node and its next nodes to a dictionary
+        """Convert the node and its next nodes to a dictionary."""
         node_dict = {
-            "value": self.value,
             "transformation_name": self.transformation_name,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "shape": self.shape,
+            "time_taken": self.time_taken,
+            "output_hash": self.output_hash,
         }
         if self.next:
             node_dict["next"] = self.next.to_dict()
-        else:
-            node_dict["next"] = None
         return node_dict
 
     def compute_hash(self, data: np.ndarray) -> str:
+        """Compute a hash for the output data of the transformation."""
         data_bytes = data.tobytes()
         return hashlib.sha256(data_bytes).hexdigest()
 
     def store_hash_and_shape(self, output_data: np.ndarray):
+        """Store the hash and shape of the output data."""
         self.shape = output_data.shape
         self.output_hash = self.compute_hash(output_data)
 
-    def finilize_metrics(self) -> None:
+    def finalize_metrics(self):
+        """Finalize transformation timing metrics."""
         self.time_taken = self.end_time - self.start_time
+
 
 
 class THead(BaseModel):
