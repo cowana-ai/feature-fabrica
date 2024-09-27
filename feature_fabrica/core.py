@@ -73,7 +73,7 @@ class Feature:
         # Apply the transformation function if specified
         if self.transformation:
             try:
-                result = compute_all_transformations(copy.deepcopy(self.transformation), initial_value=value, \
+                result = compute_all_transformations(copy.deepcopy(self.transformation), initial_value=value,\
                                                      get_intermediate_results=self.promised or self.log_transformation_chain)
                 if self.promised or self.log_transformation_chain:
                     result, intermediate_results = result
