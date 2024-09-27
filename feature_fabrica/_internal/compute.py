@@ -5,7 +5,9 @@ import numpy as np
 from omegaconf import OmegaConf
 
 
-def compute_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], initial_value: np.ndarray | None = None, get_intermediate_results: bool = False):
+def compute_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable],
+                                initial_value: np.ndarray | None = None,
+                                get_intermediate_results: bool = False):
     intermediate_results = []
     if OmegaConf.is_dict(transformations):
         prev_value = initial_value
@@ -37,17 +39,11 @@ def compute_all_transformations(transformations: Callable | list[Callable] | dic
 
 def compile_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], dependencies):
     if OmegaConf.is_dict(transformations):
-        for (
-            transformation_name,
-            transformation_fn,
-        ) in transformations.items(): # type: ignore[union-attr]
+        for transformation_fn in transformations.values(): # type: ignore[union-attr]
             transformation_fn.compile(dependencies) # type: ignore
 
     elif OmegaConf.is_list(transformations):
-        for (
-            idx,
-            transformation_fn,
-        ) in enumerate(transformations): # type: ignore
-            transformation_fn.compile(dependencies) # type: ignore[attr-defined]
+        for transformation_fn in transformations: # type: ignore
+            transformation_fn.compile(dependencies) # type: ignore
     else:
         transformations.compile(dependencies)  # type: ignore
