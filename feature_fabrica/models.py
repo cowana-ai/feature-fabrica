@@ -33,7 +33,7 @@ class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
     def _get_value(self):
         raise NotImplementedError()
 
-    def _set_value(self):
+    def _set_value(self, value: np.ndarray | None):
         raise NotImplementedError()
 
     def __array__(self, dtype=None, copy=None):
@@ -75,7 +75,7 @@ class PromiseValue(ArrayLike, BaseModel):
     def _get_value(self):
         return self.value
 
-    def _set_value(self, value: np.ndarray | None): # type: ignore[override]
+    def _set_value(self, value: np.ndarray | None):
         """Internal method to set value and transform to FeatureValue."""
         if self.data_type is not None:
             self._validate_and_cast_value(value)
