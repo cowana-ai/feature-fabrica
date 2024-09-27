@@ -1,7 +1,7 @@
 # models.py
 import hashlib
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import numpy as np
 from beartype import beartype
@@ -11,11 +11,11 @@ from feature_fabrica.utils import compute_all_transformations
 
 
 class FeatureSpec(BaseModel):
-    description: str
+    description: str =  Field(min_length=5)
     data_type: str
     group: str  | None = None
     dependencies: list[str] | None = Field(default_factory=list)
-    transformation: dict | None = Field(default_factory=dict)
+    transformation: dict[str, Any] | None = Field(default_factory=dict)
 
     @validator("data_type")
     def validate_data_type(cls, v):
@@ -30,18 +30,21 @@ class FeatureSpec(BaseModel):
         return v
 
 class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
-    def __getattr__(self, name):
-        return getattr(self.value, name)
+    def _get_value(self):
+        raise NotImplementedError()
+
+    def _set_value(self):
+        raise NotImplementedError()
 
     def __array__(self, dtype=None, copy=None):
         # Automatically converts to np.ndarray when passed to a function that expects an array
         if dtype:
-            return self.value.astype(dtype)
-        return self.value.copy() if copy else self.value
+            return self._get_value().astype(dtype)
+        return self._get_value().copy() if copy else self._get_value()
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         # Convert inputs to their underlying values if they are FeatureValue instances
-        inputs = tuple(x.value if isinstance(x, ArrayLike) else x for x in inputs)
+        inputs = tuple(x._get_value() if isinstance(x, ArrayLike) else x for x in inputs)
 
         # Perform the operation using the ufunc
         result = getattr(ufunc, method)(*inputs, **kwargs)
@@ -49,34 +52,71 @@ class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __array_function__(self, func, types, args, kwargs):
         # Convert args to their underlying values if they are FeatureValue instances
-        args = tuple(x.value if isinstance(x, ArrayLike) else x for x in args)
+        args = tuple(x._get_value() if isinstance(x, ArrayLike) else x for x in args)
         # Perform the operation using the function
         result = func(*args, **kwargs)
         return result
 
     def __getitem__(self, idx):
-        return self.value[idx]
+        return self._get_value()[idx]
+
+    def __getattr__(self, name):
+        return getattr(self._get_value(), name)
 
 
 class PromiseValue(ArrayLike, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    value: np.ndarray | None = Field(default=None, exclude=True)
+    data_type: str | None = Field(default=None)
+    cast: bool = Field(default=True)
+    casting: Literal['safe', 'unsafe'] = Field(default="unsafe")
+    transformation: Callable | dict[str, Callable] | None = Field(default=None)
 
-    value: np.ndarray = Field(default=None)
-    data_type: str | None = None
-    transformation: Callable | dict[str, Callable] | None = None
+    def _get_value(self):
+        return self.value
+
+    def _set_value(self, value: np.ndarray | None): # type: ignore[override]
+        """Internal method to set value and transform to FeatureValue."""
+        if self.data_type is not None:
+            self._validate_and_cast_value(value)
+        self.value = value
 
     @beartype
     def __call__(self, data: np.ndarray | None = None):
         if self.transformation is not None:
             result = compute_all_transformations(self.transformation)
             self._set_value(result.value)
-        else:
-
+        elif data is not None:
             self._set_value(data)
+        else:
+            raise ValueError("Either transfromation or data should be set!")
 
-    def _set_value(self, value: np.ndarray | None):
-        """Internal method to set value and transform to FeatureValue."""
-        self.value = value
+    def _validate_and_cast_value(self, value: np.ndarray | None):
+        """Validates the value's data type and shape."""
+        # Ensure data type is set before validation
+        if self.data_type is None:
+            raise ValueError("data_type must be specified for validation.")
+
+        # Get the expected data type from numpy
+        try:
+            expected_dtype = getattr(np, self.data_type)
+        except AttributeError:
+            raise ValueError(f"Unsupported data type '{self.data_type}', use valid numpy dtype!")
+
+        # Check if the value is a NumPy array
+        if not isinstance(value, np.ndarray):
+            raise ValueError(f"Value must be a NumPy array, got {type(value).__name__} instead.")
+
+        if value.dtype.type is expected_dtype:
+            return
+
+        if self.cast:
+            # Validate that the array dtype matches or is compatible with the expected dtype
+            if not (np.issubdtype(value.dtype.type, expected_dtype) or np.can_cast(value.dtype.type, expected_dtype, casting=self.casting)):
+                raise ValueError(
+                    f"Array dtype '{value.dtype}' does not match or is not compatible with expected type '{self.data_type}'"
+                )
+            value = value.astype(expected_dtype)
 
     def __repr__(self):
         return f"PromiseValue(value={self._value})"

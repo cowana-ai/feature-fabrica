@@ -93,15 +93,14 @@ class Feature:
             value = result.value
 
         self.feature_value(value)
-        return self.feature_value.value  # type: ignore[attr-defined]
+        return self.feature_value._get_value()   # type: ignore[attr-defined]
 
     @logger.catch(reraise=True)
     def __call__(self, value: np.ndarray | None = None) -> np.ndarray:
         result = self.compute(value)
-        #self.finalize_feature()
         return result
 
-    def finalize_feature(self):
+    def _finalize_feature(self):
         self.computed = True
         PROMISE_MANAGER.delete_all_related_keys(self.name)
         self.promised = False
@@ -359,7 +358,7 @@ class FeatureManager:
             for group in select_groups:
                 features_group = self.grouped_features[group]
                 for feature in features_group:
-                    results[feature.name] = feature.feature_value.value
+                    results[feature.name] = feature.feature_value._get_value()
 
         return edict(results)
 

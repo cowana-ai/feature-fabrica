@@ -53,9 +53,9 @@ class FeatureImporter(Transformation):
     @beartype
     def execute(self) -> AnyArray | list[AnyArray]:
         if len(self.data) == 1:
-            return self.data[0].value
+            return self.data[0]._get_value()
         else:
-            imported_list = [promise_value.value for promise_value in self.data]
+            imported_list = [promise_value._get_value() for promise_value in self.data]
             # Determine whether we have mixed types and what the final type should be
             has_float = 0
             has_int = 0
