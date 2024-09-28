@@ -1,0 +1,6 @@
+feature_a:
+  description: "Raw feature A"
+  data_type: "int32"
+  group: "training"
+  transformation:
+    _target_: ().my_custom_transform()
