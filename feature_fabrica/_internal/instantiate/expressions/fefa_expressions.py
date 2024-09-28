@@ -72,18 +72,18 @@ def _is_valid_expression(expression: str) -> bool:
     needs_operator = False
     # Iterate through each part of the split expression
     for token in split_expression:
-        if not needs_operator and token == '(':
+        if not needs_operator and token == "(":
             parentheses_counter += 1
             needs_operand = True
             continue
-        elif (not needs_operand or can_be_initital_data) and token == ')':
+        elif (not needs_operand or can_be_initital_data) and token == ")":
             parentheses_counter -= 1
             needs_operand = False
             needs_operator = True
         elif needs_operand and (is_numeric(token) or is_valid_variable_name(token)):
             needs_operand = False
             needs_operator = True
-        elif needs_operator and token in ['+', '*', '/', '-']:
+        elif needs_operator and is_operator(token):
             needs_operator = False
             needs_operand = True
         elif needs_operator and is_function(token):
@@ -111,11 +111,11 @@ def infix_fefa_expression_to_postfix(expression: str) -> list[str]:
         elif token == '(':
             operator_stack.append(token)
         elif token == ')':
-            while operator_stack and operator_stack[-1] != '(':
+            while operator_stack and operator_stack[-1] != "(":
                 output.append(operator_stack.pop())
             operator_stack.pop()  # Remove '('
         elif is_operator(token):
-            while (operator_stack and operator_stack[-1] != '(' and
+            while (operator_stack and operator_stack[-1] != "(" and
                    get_precedence(token) <= get_precedence(operator_stack[-1])):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
