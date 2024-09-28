@@ -1,0 +1,13 @@
+# examples/basic_features.yaml
+feature_a:
+  description: "Raw feature A"
+  data_type: "int32"
+  group: "training"
+
+feature_b:
+  description: "Raw feature B"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_a"]
+  transformation:
+    _target_: ().group_reduce(key_feature='feature_a', reduce_func='mean')

@@ -9,6 +9,7 @@ from feature_fabrica.transform.utils import (DateTimeArray, NumericArray,
 DAYS_OF_WEEK = np.array(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
 
 class DateTimeDifference(Transformation):
+    _name_ = "datetime_diff"
     @beartype
     def __init__(self, initial_datetime: str | None = None, end_datetime: str | None = None, compute_unit: str | None = None):
         """This transformation computes the difference between a provided datetime array and an initial or end datetime.
@@ -97,6 +98,7 @@ class DateTimeArithmeticBase(Transformation):
         raise NotImplementedError()
 
 class DateTimeAdd(DateTimeArithmeticBase):
+    _name_ = "datetime_add"
     @beartype
     def with_data(self, data: DateTimeArray) -> DateTimeArray:
         return data + self.time_delta
@@ -105,6 +107,7 @@ class DateTimeAdd(DateTimeArithmeticBase):
         return self.feature + self.time_delta
 
 class DateTimeSubtract(DateTimeArithmeticBase):
+    _name_ = "datetime_sub"
     @beartype
     def with_data(self, data: DateTimeArray) -> DateTimeArray:
         return data - self.time_delta
@@ -113,6 +116,7 @@ class DateTimeSubtract(DateTimeArithmeticBase):
         return self.feature - self.time_delta
 
 class DateTimeExtract(Transformation):
+    _name_ = "datetime_extract"
     @beartype
     def __init__(self, component: str):
         """Extracts a specific component from each datetime in the input array.
@@ -152,6 +156,7 @@ class DateTimeExtract(Transformation):
             return np.array([d.second for d in data_converted_object], dtype=np.int32)
 
 class ExtractDayofWeek(Transformation):
+    _name_ = "datetime_day_of_week"
     @beartype
     def __init__(self, feature: str | None = None, return_name: bool = False):
         """Extract day of the week.

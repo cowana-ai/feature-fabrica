@@ -6,13 +6,13 @@ import numpy as np
 from beartype import BeartypeConf, BeartypeStrategy, beartype
 from easydict import EasyDict as edict
 from graphviz import Digraph
-from hydra.utils import instantiate
 from omegaconf import DictConfig
 
+from feature_fabrica._internal.compute import (compile_all_transformations,
+                                               compute_all_transformations)
 from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
 from feature_fabrica.promise_manager import get_promise_manager
-from feature_fabrica.utils import (compute_all_transformations, get_logger,
-                                   verify_dependencies)
+from feature_fabrica.utils import get_logger, instantiate, verify_dependencies
 from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()
@@ -37,18 +37,12 @@ class Feature:
         self.log_transformation_chain = log_transformation_chain
         self.transformation_chain_head = THead()
         self.transformation_ptr = self.transformation_chain_head
-
         self.computed = False
         self.promised: bool = False
 
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
-        if self.transformation:
-            for (
-                transformation_name,
-                transformation_obj,
-            ) in self.transformation.items():
-                transformation_obj.compile(dependencies)
+        compile_all_transformations(self.transformation, dependencies)
         self.promised = PROMISE_MANAGER.is_promised_any(self.name)
         return
 

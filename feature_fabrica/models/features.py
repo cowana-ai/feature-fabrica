@@ -5,8 +5,8 @@ import numpy as np
 from beartype import beartype
 from pydantic import BaseModel, ConfigDict, Field, validator
 
+from feature_fabrica._internal.compute import compute_all_transformations
 from feature_fabrica.models.arrays import ArrayLike
-from feature_fabrica.utils import compute_all_transformations
 
 
 class FeatureSpec(BaseModel):

@@ -5,6 +5,7 @@ from feature_fabrica.transform.utils import AnyArray, is_valid_numpy_dtype
 
 
 class AsType(Transformation):
+    _name_ = "astype"
     @beartype
     def __init__(self, dtype: str):
         if not is_valid_numpy_dtype(dtype):

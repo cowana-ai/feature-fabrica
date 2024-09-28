@@ -7,21 +7,27 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 from easydict import EasyDict as edict
+from omegaconf import OmegaConf
 
 from feature_fabrica.models import PromiseValue
 from feature_fabrica.promise_manager import get_promise_manager
-from feature_fabrica.utils import get_logger, is_dict_like, is_list_like
+from feature_fabrica.transform.registry import TransformationRegistry
 
 if TYPE_CHECKING:
     from feature_fabrica.core import Feature
 
-logger = get_logger()
 promise_manager = get_promise_manager()
 
 class Transformation(ABC):
+    _name_: str | None = None
+
     def __init__(self) -> None:
         self.expects_data = False
         self.expects_executable_promise = 0
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        TransformationRegistry.register(cls)
 
     def compile(self, features: dict[str, Feature] | None = None) -> bool:
         executable_promise_count = 0
@@ -35,7 +41,7 @@ class Transformation(ABC):
                 stack: list[tuple[Any, Any, Any]] = [(self, attr_name, attr_value)]
                 while stack:
                     cur_obj, cur_attr, cur_value = stack.pop()
-                    if not is_list_like(cur_obj) and not is_dict_like(cur_obj):
+                    if not OmegaConf.is_list(cur_obj) and not OmegaConf.is_dict(cur_obj):
                         key = cur_obj.__class__.__name__ + '.' + cur_attr
                         memo[key] = 1
 
@@ -57,19 +63,19 @@ class Transformation(ABC):
                         continue
 
                     # If cur_value is Iterable -> iterate recursively
-                    elif is_list_like(cur_value):
+                    elif OmegaConf.is_list(cur_value):
                         for idx, item in enumerate(cur_value):
                             stack.append((cur_value, idx, item))
                         continue
 
                     # If cur_value is Mapping -> iterate over key-value pairs
-                    elif is_dict_like(cur_value):
+                    elif OmegaConf.is_dict(cur_value):
                         for key, val in cur_value.items():
                             stack.append((cur_value, key, val))
                         continue
                     # Resolve here
                     # Set resolved values appropriately
-                    if is_list_like(cur_obj) or is_dict_like(cur_obj):
+                    if OmegaConf.is_list(cur_obj) or OmegaConf.is_dict(cur_obj):
                         cur_obj[cur_attr] = cur_value
                     else:
                         setattr(cur_obj, cur_attr, cur_value)
