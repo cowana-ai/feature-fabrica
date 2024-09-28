@@ -19,7 +19,7 @@ feature_d:
   dependencies: ["feature_a"]
   transformation:
     multiply:
-      _target_: (feature_a + 2) / 2
+      _target_: (feature_a).scale(factor=6) / 2
 
 feature_c:
   description: "Derived feature C"
