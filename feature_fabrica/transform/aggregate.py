@@ -1,11 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from beartype import beartype
 from scipy import stats
 
-from feature_fabrica.models import PromiseValue
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import NumericArray, StrOrNumArray
 
+if TYPE_CHECKING:
+    from feature_fabrica.models import PromiseValue
 
 @beartype
 def mean_reduction(data: NumericArray | list[NumericArray], axis: int) -> NumericArray:

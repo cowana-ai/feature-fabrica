@@ -7,7 +7,7 @@ from typing import Any
 from hydra._internal.instantiate._instantiate2 import _is_target
 from omegaconf import OmegaConf
 
-from feature_fabrica.transform.registry import TransformationRegistry
+import feature_fabrica.transform.registry as registry
 
 # Define operator precedence and corresponding transformations
 BASIC_MATH_OPERATORS = {
@@ -186,7 +186,7 @@ def build_ast(postfix_tokens) -> dict:
 def _process_function_token(token: str, stack: list, count_individual_steps: int) -> int:
     """Process a function token and update the AST stack."""
     fn_name, kwargs = split_function_call(token)
-    fn_class = TransformationRegistry.get_transformation_class_by_name(fn_name)
+    fn_class = registry.TransformationRegistry.get_transformation_class_by_name(fn_name)
 
     _hydrated_fn_class = {
         "_target_": fn_class,
@@ -212,7 +212,7 @@ def _process_function_token(token: str, stack: list, count_individual_steps: int
         if is_numeric(a) or not is_valid_variable_name(a):
             raise ValueError("Invalid operand for function.")
 
-        importer_fn_class = TransformationRegistry.get_transformation_class_by_name("import")
+        importer_fn_class = registry.TransformationRegistry.get_transformation_class_by_name("import")
         _hydrated_importer_fn_class = {
             "_target_": importer_fn_class,
             "feature": a
