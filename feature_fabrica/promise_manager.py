@@ -54,19 +54,19 @@ class PromiseManager(ABC):
         """Decorator to manage promises before executing the function."""
         def wrapper(transformation, *args, **kwargs):
             # Resolve all PromiseValues in the transformation
-            #print(func.__name__, func.__name__ == 'compile', *args)
-            if func.__name__ == '__call__' and transformation.expects_executable_promise:
-                transformation_obj_id = str(id(transformation))
-                for i in range(transformation.expects_executable_promise):
-                    key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
-                    promise_value = self.promised_memo[key]
-                    promise_value()
+            if func.__name__ == '__call__':
+                if transformation.expects_executable_promise:
+                    transformation_obj_id = str(id(transformation))
+                    for i in range(transformation.expects_executable_promise):
+                        key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
+                        promise_value = self.promised_memo[key]
+                        promise_value()
                     #del self.promised_memo[key]
-            # Call the original transformation method
-            result = func(transformation, *args, **kwargs)
+                # Call the original transformation method
+                result = func(transformation, *args, **kwargs)
 
-            if self.is_promised(transformation.feature_name, transformation._name_):
-                self.pass_data(result.value, transformation.feature_name, transformation._name_)
+                if transformation._name_ and self.is_promised(transformation.feature_name, transformation._name_):
+                    self.pass_data(result.value, transformation.feature_name, transformation._name_)
             return result
 
 

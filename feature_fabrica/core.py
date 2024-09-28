@@ -43,7 +43,7 @@ class Feature:
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         compile_all_transformations(self.transformation, self.name, dependencies)
-        self.promised = PROMISE_MANAGER.is_promised_any(self.name)
+        self.promised = PROMISE_MANAGER.is_promised(self.name)
         return
 
     @logger.catch(reraise=True)
@@ -60,15 +60,15 @@ class Feature:
         np.ndarray
             The computed feature value.
         """
-        if self.promised and PROMISE_MANAGER.is_promised(self.name):
+        if self.promised:
             PROMISE_MANAGER.pass_data(data=value, base_name=self.name)
 
         # Apply the transformation function if specified
         if self.transformation:
             try:
                 result = compute_all_transformations(self.transformation, initial_value=value,\
-                                                     get_intermediate_results=self.promised or self.log_transformation_chain)
-                if self.promised or self.log_transformation_chain:
+                                                     get_intermediate_results=self.log_transformation_chain)
+                if self.log_transformation_chain:
                     result, intermediate_results = result
                     for transformation_name, result_dict in intermediate_results:
                         if self.log_transformation_chain:

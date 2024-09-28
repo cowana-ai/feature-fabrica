@@ -84,4 +84,4 @@ class PromiseValue(ArrayLike, BaseModel):
             value = value.astype(expected_dtype)
 
     def __repr__(self):
-        return f"PromiseValue(value={self._value})"
+        return f"PromiseValue(value={self.value})"
