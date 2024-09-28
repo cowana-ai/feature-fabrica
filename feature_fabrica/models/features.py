@@ -3,6 +3,7 @@ from typing import Any, Literal
 
 import numpy as np
 from beartype import beartype
+from omegaconf import DictConfig
 from pydantic import BaseModel, ConfigDict, Field, validator
 
 from feature_fabrica._internal.compute import compute_all_transformations
@@ -34,7 +35,7 @@ class PromiseValue(ArrayLike, BaseModel):
     data_type: str | None = Field(default=None)
     cast: bool = Field(default=True)
     casting: Literal['safe', 'unsafe'] = Field(default="unsafe")
-    transformation: Callable | dict[str, Callable] | None = Field(default=None)
+    transformation: Callable | DictConfig | None = Field(default=None)
 
     def _get_value(self):
         return self.value
