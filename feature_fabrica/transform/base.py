@@ -31,6 +31,7 @@ class Transformation(ABC):
         TransformationRegistry.register(cls)
 
     def compile(self, feature_name: str, feature_dependencies: dict[str, Feature] | None = None) -> bool:
+        # bind feature name
         self.feature_name = feature_name
 
         executable_promise_count = 0
