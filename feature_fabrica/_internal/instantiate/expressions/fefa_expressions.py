@@ -16,6 +16,8 @@ BASIC_MATH_OPERATORS = {
     '*': {'precedence': 2, 'transformation': 'MultiplyReduce'},
     '/': {'precedence': 2, 'transformation': 'DivideReduce'},
 }
+OPEN_PARENTHESIS = "("
+CLOSE_PARENTHESIS = ")"
 FUNCTION_PATTERN = r'\.(\w+)\((.*)\)'
 TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[()+\-*/]')
 
@@ -72,11 +74,11 @@ def _is_valid_expression(expression: str) -> bool:
     needs_operator = False
     # Iterate through each part of the split expression
     for token in split_expression:
-        if not needs_operator and token == "(":
+        if not needs_operator and token == OPEN_PARENTHESIS:
             parentheses_counter += 1
             needs_operand = True
             continue
-        elif (not needs_operand or can_be_initital_data) and token == ")":
+        elif (not needs_operand or can_be_initital_data) and token == CLOSE_PARENTHESIS:
             parentheses_counter -= 1
             needs_operand = False
             needs_operator = True
@@ -108,14 +110,14 @@ def infix_fefa_expression_to_postfix(expression: str) -> list[str]:
             output.append(token)
         elif is_function(token):  # Function call like .log(...)
             output.append(token)
-        elif token == '(':
+        elif token == OPEN_PARENTHESIS:
             operator_stack.append(token)
-        elif token == ')':
-            while operator_stack and operator_stack[-1] != "(":
+        elif token == CLOSE_PARENTHESIS:
+            while operator_stack and operator_stack[-1] != OPEN_PARENTHESIS:
                 output.append(operator_stack.pop())
             operator_stack.pop()  # Remove '('
         elif is_operator(token):
-            while (operator_stack and operator_stack[-1] != "(" and
+            while (operator_stack and operator_stack[-1] != OPEN_PARENTHESIS and
                    get_precedence(token) <= get_precedence(operator_stack[-1])):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
