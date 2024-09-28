@@ -22,6 +22,7 @@ class Transformation(ABC):
     _name_: str | None = None
 
     def __init__(self) -> None:
+        self.feature_name: str | None = None # type: ignore
         self.expects_data = False
         self.expects_executable_promise = 0
 
@@ -29,9 +30,11 @@ class Transformation(ABC):
         super().__init_subclass__(**kwargs)
         TransformationRegistry.register(cls)
 
-    def compile(self, features: dict[str, Feature] | None = None) -> bool:
+    def compile(self, feature_name: str, feature_dependencies: dict[str, Feature] | None = None) -> bool:
+        self.feature_name = feature_name
+
         executable_promise_count = 0
-        if features is not None:
+        if feature_dependencies is not None:
             memo: dict[str, int] = defaultdict(int)
             memo["expects_data"] = 1
             memo["expects_promise"] = 1
@@ -47,11 +50,11 @@ class Transformation(ABC):
 
                     # If cur_value is str and in features -> resolved immediately
                     if isinstance(cur_value, str):
-                        if cur_value in features:
-                            cur_value = features[cur_value].feature_value
+                        if cur_value in feature_dependencies:
+                            cur_value = feature_dependencies[cur_value].feature_value
                     # If cur_value is Transformation -> compile it -> resolved immediately
                     elif isinstance(cur_value, Transformation):
-                        cur_value.compile(features)
+                        cur_value.compile(feature_name, feature_dependencies)
                         continue
 
                     # If cur_value is PromiseValue -> resolve recursively

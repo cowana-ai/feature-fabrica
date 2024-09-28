@@ -35,18 +35,6 @@ feature_e:
   data_type: "int32"
   group: "draft"
   transformation:
-    upper:
-      _target_: ().upper()
-    lower:
-      _target_: ().lower()
-    one_hot:
-      _target_: ().one_hot(categories=['apple', 'orange'])
-
-feature_e_chained_fns:
-  description: "Raw feature E"
-  data_type: "int32"
-  group: "draft"
-  transformation:
     _target_: ().upper().lower().one_hot(categories=['apple', 'orange'])
 
 feature_f:

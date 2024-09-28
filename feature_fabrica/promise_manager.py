@@ -63,7 +63,13 @@ class PromiseManager(ABC):
                     promise_value()
                     #del self.promised_memo[key]
             # Call the original transformation method
-            return func(transformation, *args, **kwargs)
+            result = func(transformation, *args, **kwargs)
+
+            if self.is_promised(transformation.feature_name, transformation._name_):
+                self.pass_data(result.value, transformation.feature_name, transformation._name_)
+            return result
+
+
 
         return wrapper
 

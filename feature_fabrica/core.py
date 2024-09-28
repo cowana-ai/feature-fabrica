@@ -42,7 +42,7 @@ class Feature:
 
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
-        compile_all_transformations(self.transformation, dependencies)
+        compile_all_transformations(self.transformation, self.name, dependencies)
         self.promised = PROMISE_MANAGER.is_promised_any(self.name)
         return
 
@@ -71,9 +71,6 @@ class Feature:
                 if self.promised or self.log_transformation_chain:
                     result, intermediate_results = result
                     for transformation_name, result_dict in intermediate_results:
-                        if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
-                            PROMISE_MANAGER.pass_data(data=result_dict.value, base_name=self.name, suffix=transformation_name)
-
                         if self.log_transformation_chain:
                             self.update_transformation_chain(
                                 transformation_name, result_dict

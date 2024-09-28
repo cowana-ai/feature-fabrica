@@ -19,7 +19,6 @@ class TestFeatureSet(unittest.TestCase):
             "feature_a": np.array([10], dtype=np.int32),
             "feature_b": np.array([20], dtype=np.int32),
             "feature_e": np.array(["orange"]),
-            "feature_e_chained_fns": np.array(["Orange"]),
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
@@ -44,7 +43,6 @@ class TestFeatureSet(unittest.TestCase):
             "feature_a": np.array([10], dtype=np.int32),
             "feature_b": np.array([20], dtype=np.int32),
             "feature_e": np.array(["orange"]),
-            "feature_e_chained_fns": np.array(["Orange"]),
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
@@ -59,7 +57,6 @@ class TestFeatureSet(unittest.TestCase):
             "feature_a": np.array(list(range(100)), dtype=np.int32),
             "feature_b": np.array(list(range(100, 200)), dtype=np.int32),
             "feature_e": np.array(["Orange", "Apple"]),
-            "feature_e_chained_fns": np.array(["Orange", "Apple"]),
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
@@ -90,7 +87,6 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(results["feature_f"], expected_feature_f)
 
         # Assert feature_e's
-        np.testing.assert_array_equal(results["feature_e"], results["feature_e_chained_fns"])
         np.testing.assert_array_equal(results["feature_e_original"], expected_feature_e_original)
         np.testing.assert_array_equal(results["feature_e_lower"], expected_feature_e_lower)
         np.testing.assert_array_equal(results["feature_e_upper"], expected_feature_e_upper)
@@ -108,7 +104,6 @@ class TestFeatureSet(unittest.TestCase):
             "feature_a": np.array(list(range(100)), dtype=np.int32),
             "feature_b": np.array(list(range(100, 200)), dtype=np.int32),
             "feature_e": np.array(["Orange", "Apple"]),
-            "feature_e_chained_fns": np.array(["Orange", "Apple"]),
             "feature_f": np.array(["orange "]),
         }
         feature_manager = FeatureManager(
