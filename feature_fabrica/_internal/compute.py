@@ -33,7 +33,7 @@ def compute_all_transformations(
 
         # Collect intermediate results if requested
         if get_intermediate_results:
-            intermediate_results.append((idx, result) if idx is not None else (transformation_fn.__name__, result))
+            intermediate_results.append((idx, result) if idx is not None else (transformation_fn._name_, result)) # type: ignore
 
     # Return the final result, along with intermediate results if requested
     return (result, intermediate_results) if get_intermediate_results else result

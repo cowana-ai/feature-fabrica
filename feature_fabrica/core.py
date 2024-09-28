@@ -121,7 +121,7 @@ class Feature:
             end_time=end_time,
         )
         transformation_node.store_hash_and_shape(result_dict.value)
-        transformation_node.finilize_metrics()
+        transformation_node.finalize_metrics()
         self.transformation_ptr.next = transformation_node
         self.transformation_ptr = transformation_node
 
