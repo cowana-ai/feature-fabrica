@@ -40,7 +40,7 @@ def compute_all_transformations(
 
 
 def compile_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], dependencies):
-        # Create a sequence of transformation functions
+    # Create a sequence of transformation functions
     if OmegaConf.is_dict(transformations):
         transformation_sequence = transformations.values() # type: ignore
     elif OmegaConf.is_list(transformations):
