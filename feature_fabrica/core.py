@@ -10,7 +10,8 @@ from omegaconf import DictConfig
 
 from feature_fabrica._internal.compute import (compile_all_transformations,
                                                compute_all_transformations)
-from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
+from feature_fabrica.models import (FeatureSpec, PromiseValue, THead, TNode,
+                                    get_execution_config)
 from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.utils import get_logger, instantiate, verify_dependencies
 from feature_fabrica.yaml_parser import load_yaml
@@ -138,11 +139,12 @@ class FeatureManager:
         config_name: str,
         parallel_execution: bool = True,
         log_transformation_chain: bool = True,
+        max_workers: int = 4,
     ):
+        self.execution_config = get_execution_config(parallel_execution=parallel_execution, max_workers=max_workers, reset_params=True)
         self.feature_specs: DictConfig = load_yaml(
             config_path=config_path, config_name=config_name
         )
-        self.parallel_execution = parallel_execution
         self.log_transformation_chain = log_transformation_chain
 
         self.independent_features: list[Feature] = []
@@ -278,8 +280,8 @@ class FeatureManager:
 
         for priority in sorted(self.queue.keys()):
             cur_features = self.queue[priority]
-            if self.parallel_execution:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+            if self.execution_config.parallel_execution:
+                with concurrent.futures.ThreadPoolExecutor(max_workers = self.execution_config.max_workers) as executor:
                     future_to_feature = {
                         executor.submit(compile_feature, feature): feature
                         for feature in cur_features
@@ -322,8 +324,8 @@ class FeatureManager:
         for priority in sorted(self.queue.keys()):
             cur_features = self.queue[priority]
 
-            if self.parallel_execution:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+            if self.execution_config.parallel_execution:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=self.execution_config.max_workers) as executor:
                     future_to_feature = {
                         executor.submit(
                             self.compute_single_feature,
