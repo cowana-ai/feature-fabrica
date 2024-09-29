@@ -60,9 +60,6 @@ class Feature:
         np.ndarray
             The computed feature value.
         """
-        if self.promised:
-            PROMISE_MANAGER.pass_data(data=value, base_name=self.name)
-
         # Apply the transformation function if specified
         if self.transformation:
             try:
@@ -294,6 +291,8 @@ class FeatureManager:
                     compile_feature(feature=feature)
 
     def compute_single_feature(self, feature: Feature, value: np.ndarray | None = None):
+        if feature.promised:
+            PROMISE_MANAGER.pass_data(data=value, base_name=feature.name)
         if value is not None:
             result = feature(value=value)
         else:
