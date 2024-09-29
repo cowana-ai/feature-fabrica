@@ -10,7 +10,8 @@ from omegaconf import DictConfig
 
 from feature_fabrica._internal.compute import (compile_all_transformations,
                                                compute_all_transformations)
-from feature_fabrica.models import FeatureSpec, PromiseValue, THead, TNode
+from feature_fabrica.models import (FeatureSpec, PromiseValue, THead, TNode,
+                                    get_execution_config)
 from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.utils import get_logger, instantiate, verify_dependencies
 from feature_fabrica.yaml_parser import load_yaml
@@ -42,8 +43,8 @@ class Feature:
 
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
-        compile_all_transformations(self.transformation, dependencies)
-        self.promised = PROMISE_MANAGER.is_promised_any(self.name)
+        compile_all_transformations(self.transformation, self.name, dependencies)
+        self.promised = PROMISE_MANAGER.is_promised(self.name)
         return
 
     @logger.catch(reraise=True)
@@ -60,20 +61,14 @@ class Feature:
         np.ndarray
             The computed feature value.
         """
-        if self.promised and PROMISE_MANAGER.is_promised(self.name):
-            PROMISE_MANAGER.pass_data(data=value, base_name=self.name)
-
         # Apply the transformation function if specified
         if self.transformation:
             try:
                 result = compute_all_transformations(self.transformation, initial_value=value,\
-                                                     get_intermediate_results=self.promised or self.log_transformation_chain)
-                if self.promised or self.log_transformation_chain:
+                                                     get_intermediate_results=self.log_transformation_chain)
+                if self.log_transformation_chain:
                     result, intermediate_results = result
                     for transformation_name, result_dict in intermediate_results:
-                        if self.promised and PROMISE_MANAGER.is_promised(self.name, transformation_name):
-                            PROMISE_MANAGER.pass_data(data=result_dict.value, base_name=self.name, suffix=transformation_name)
-
                         if self.log_transformation_chain:
                             self.update_transformation_chain(
                                 transformation_name, result_dict
@@ -144,11 +139,12 @@ class FeatureManager:
         config_name: str,
         parallel_execution: bool = True,
         log_transformation_chain: bool = True,
+        max_workers: int = 4,
     ):
+        self.execution_config = get_execution_config(parallel_execution=parallel_execution, max_workers=max_workers, reset_params=True)
         self.feature_specs: DictConfig = load_yaml(
             config_path=config_path, config_name=config_name
         )
-        self.parallel_execution = parallel_execution
         self.log_transformation_chain = log_transformation_chain
 
         self.independent_features: list[Feature] = []
@@ -284,8 +280,8 @@ class FeatureManager:
 
         for priority in sorted(self.queue.keys()):
             cur_features = self.queue[priority]
-            if self.parallel_execution:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+            if self.execution_config.parallel_execution:
+                with concurrent.futures.ThreadPoolExecutor(max_workers = self.execution_config.max_workers) as executor:
                     future_to_feature = {
                         executor.submit(compile_feature, feature): feature
                         for feature in cur_features
@@ -297,6 +293,8 @@ class FeatureManager:
                     compile_feature(feature=feature)
 
     def compute_single_feature(self, feature: Feature, value: np.ndarray | None = None):
+        if feature.promised:
+            PROMISE_MANAGER.pass_data(data=value, base_name=feature.name)
         if value is not None:
             result = feature(value=value)
         else:
@@ -326,8 +324,8 @@ class FeatureManager:
         for priority in sorted(self.queue.keys()):
             cur_features = self.queue[priority]
 
-            if self.parallel_execution:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+            if self.execution_config.parallel_execution:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=self.execution_config.max_workers) as executor:
                     future_to_feature = {
                         executor.submit(
                             self.compute_single_feature,

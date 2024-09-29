@@ -1,8 +1,14 @@
 # utils.py
+from __future__ import annotations
+
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 from omegaconf import OmegaConf
+
+if TYPE_CHECKING:
+    from feature_fabrica.core import Feature
 
 
 def compute_all_transformations(
@@ -39,7 +45,7 @@ def compute_all_transformations(
     return (result, intermediate_results) if get_intermediate_results else result
 
 
-def compile_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], dependencies):
+def compile_all_transformations(transformations: Callable | list[Callable] | dict[str, Callable], feature_name: str, dependencies: dict[str, Feature] | None):
     # Create a sequence of transformation functions
     if OmegaConf.is_dict(transformations):
         transformation_sequence = transformations.values() # type: ignore
@@ -51,4 +57,4 @@ def compile_all_transformations(transformations: Callable | list[Callable] | dic
 
     # Process each transformation in the sequence
     for transformation_fn in transformation_sequence:
-        transformation_fn.compile(dependencies) # type: ignore
+        transformation_fn.compile(feature_name, dependencies) # type: ignore
