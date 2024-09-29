@@ -1,4 +1,5 @@
 from abc import ABC
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 from beartype import beartype
@@ -57,12 +58,21 @@ class PromiseManager(ABC):
             if func.__name__ == '__call__':
                 if transformation.expects_executable_promise:
                     transformation_obj_id = str(id(transformation))
-                    for i in range(transformation.expects_executable_promise):
-                        key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
-                        promise_value = self.promised_memo[key]
-                        promise_value()
-                    #del self.promised_memo[key]
-                # Call the original transformation method
+
+                    with ThreadPoolExecutor() as executor:
+                        futures = []
+
+                        for i in range(transformation.expects_executable_promise):
+                            key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
+                            if key in self.promised_memo:
+                                promise_value = self.promised_memo[key]
+                                futures.append(executor.submit(promise_value))
+                        for future in as_completed(futures):
+                            try:
+                                future.result()
+                            except Exception as e:
+                                raise RuntimeError(f"Error executing promise: {e}")
+
                 result = func(transformation, *args, **kwargs)
 
                 if transformation._name_ and self.is_promised(transformation.feature_name, transformation._name_):
