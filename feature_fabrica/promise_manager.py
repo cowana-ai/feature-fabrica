@@ -1,16 +1,18 @@
 from abc import ABC
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 from beartype import beartype
 
-from feature_fabrica.models import PromiseValue
+from feature_fabrica.models import PromiseValue, get_execution_config
 
-promise_memo = None
 
 class PromiseManager(ABC):
-    def __init__(self):
+    def __init__(self, parallel_execution: bool = True, max_workers: int = 5):
         super().__init__()
+        self.execution_config = get_execution_config(parallel_execution=parallel_execution, max_workers=max_workers)
         self.promised_memo: dict[str, PromiseValue] = {}
+
 
     @beartype
     def get_promise_value(self, base_name: str, suffix: str | None = None) -> PromiseValue:
@@ -53,22 +55,41 @@ class PromiseManager(ABC):
     def __call__(self, func):
         """Decorator to manage promises before executing the function."""
         def wrapper(transformation, *args, **kwargs):
-            # Resolve all PromiseValues in the transformation
-            #print(func.__name__, func.__name__ == 'compile', *args)
-            if func.__name__ == '__call__' and transformation.expects_executable_promise:
-                transformation_obj_id = str(id(transformation))
-                for i in range(transformation.expects_executable_promise):
-                    key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
-                    promise_value = self.promised_memo[key]
-                    promise_value()
-                    #del self.promised_memo[key]
-            # Call the original transformation method
-            return func(transformation, *args, **kwargs)
+            if func.__name__ == '__call__':
+                if transformation.expects_executable_promise:
+                    transformation_obj_id = str(id(transformation))
+
+                    if self.execution_config.parallel_execution:
+                        with ThreadPoolExecutor(max_workers=self.execution_config.max_workers) as executor:
+                            keys = [
+                                self._generate_key(transformation_obj_id, str(i))
+                                for i in range(transformation.expects_executable_promise)
+                            ]
+                            promise_values = [self.promised_memo[key] for key in keys if key in self.promised_memo]
+                            try:
+                                list(executor.map(lambda pv: pv(), promise_values))
+                            except Exception as e:
+                                raise RuntimeError(f"Error executing promise: {e}")
+                    else:
+                        for i in range(transformation.expects_executable_promise):
+                            key = self._generate_key(base_name=transformation_obj_id, suffix=str(i))
+                            if key in self.promised_memo:
+                                try:
+                                    self.promised_memo[key]()
+                                except Exception as e:
+                                    raise RuntimeError(f"Error executing promise for index {i}: {e}")
+
+                result = func(transformation, *args, **kwargs)
+
+                if transformation._name_ and self.is_promised(transformation.feature_name, transformation._name_):
+                    self.pass_data(result.value, transformation.feature_name, transformation._name_)
+
+            return result
 
         return wrapper
 
-def get_promise_manager():
-    global promise_memo
-    if not promise_memo:
-        promise_memo = PromiseManager()
-    return promise_memo
+def get_promise_manager(**kwargs):
+    """Singleton pattern for PromiseManager."""
+    if 'promise_memo' not in globals():
+        globals()['promise_memo'] = PromiseManager(**kwargs)
+    return globals()['promise_memo']
