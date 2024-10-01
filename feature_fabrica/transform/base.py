@@ -51,7 +51,12 @@ class Transformation(ABC):
 
                     # If cur_value is str and in features -> resolved immediately
                     if isinstance(cur_value, str):
-                        if cur_value in feature_dependencies:
+                        if ":" in cur_value and False:
+                            dep_feature_name, transform_stage = cur_value.split(":")
+                            if dep_feature_name not in feature_dependencies:
+                                raise ValueError()
+                            cur_value = promise_manager.get_promise_value(base_name=dep_feature_name, suffix=transform_stage)
+                        elif cur_value in feature_dependencies:
                             cur_value = feature_dependencies[cur_value].feature_value
                     # If cur_value is Transformation -> compile it -> resolved immediately
                     elif isinstance(cur_value, Transformation):

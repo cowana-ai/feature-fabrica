@@ -13,14 +13,15 @@ import feature_fabrica.transform.registry as registry
 BASIC_MATH_OPERATORS = {
     '+': {'precedence': 1, 'transformation': 'SumReduce'},
     '-': {'precedence': 1, 'transformation': 'SubtractReduce'},
-    ',': {'precedence': 1, 'transformation': 'ListAggregation'},
+    ',': {'precedence': 1, 'transformation': 'FeatureImporter'},
     '*': {'precedence': 2, 'transformation': 'MultiplyReduce'},
     '/': {'precedence': 2, 'transformation': 'DivideReduce'},
 }
 OPEN_PARENTHESIS = "("
 CLOSE_PARENTHESIS = ")"
 FUNCTION_PATTERN = r'\.(\w+)\((.*)\)'
-TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[,()+\-*/]')
+#TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[,()+\-*/]')
+TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+:\w+\b|\b\w+\b|\.\w+\([^\)]*\)|[,()+\-*/]')
 
 def is_operator(token: str) -> bool:
     """Check if the token is a mathematical operator."""
@@ -35,6 +36,13 @@ def get_transformation(op: str) -> str:
 
 def is_valid_variable_name(name: str) -> bool:
     """Check if the name is a valid Python variable name (non-keyword and identifier)."""
+    if ":" in name:
+        name_stage = name.split(":")
+        if len(name_stage) == 2:
+            name, transform_stage = name_stage
+            return is_valid_variable_name(name) and transform_stage in registry.TransformationRegistry.registry
+        else:
+            return False
     return name.isidentifier() and not keyword.iskeyword(name)
 
 def is_numeric(token: str) -> bool:
@@ -231,6 +239,7 @@ def _pop_operand(stack: list) -> Any:
     operand = stack.pop()
     if not isinstance(operand, dict) and is_numeric(operand):
         return float(operand)
+
     return operand
 
 def _process_operator_token(token: str, stack: list):

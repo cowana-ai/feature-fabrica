@@ -41,7 +41,6 @@ class Feature:
         self.computed = False
         self.promised: bool = False
 
-
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         compile_all_transformations(self.transformation, self.name, dependencies)
         self.promised = PROMISE_MANAGER.is_promised(self.name)
