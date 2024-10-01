@@ -13,20 +13,19 @@ from feature_fabrica.transform.utils import (
 class BaseReduce(Transformation):
     ufunc = None
     @beartype
-    def __init__(self, iterable: Iterable | None = None, expects_data: bool = False, axis: int = 0):
+    def __init__(self, iterable: Iterable | None = None, expects_data: bool = True, axis: int = 0):
         super().__init__()
 
         assert iterable or expects_data, "Either expect_data or iterable should be set!"
         self.iterable = iterable
         self.axis = axis
         if not expects_data and self.iterable:
-            self.execute = self.default  # type: ignore[method-assign]
+            self.execute = self.default  # type: ignore
         elif expects_data and not self.iterable:
             self.execute = self.with_data  # type: ignore[method-assign]
-        elif expects_data and self.iterable:
-            self.execute = self.with_data_and_iterable # type: ignore[method-assign]
+
     @beartype
-    def default(self) -> NumericArray | NumericValue:
+    def execute(self) -> NumericArray | NumericValue:
         if self.ufunc is None:
             raise NotImplementedError()
         iterable: NumericArray = broadcast_and_normalize_numeric_array(self.iterable)
@@ -47,13 +46,6 @@ class BaseReduce(Transformation):
 
             # Apply the reduceat function using the starting positions
             return self.ufunc.reduceat(cells_flat, cell_starts, axis=self.axis)
-
-    @beartype
-    def with_data_and_iterable(self, data: NumericArray) -> NumericArray | NumericValue:
-        if self.ufunc is None:
-            raise NotImplementedError()
-        data_and_iterable: NumericArray = broadcast_and_normalize_numeric_array([data] + self.iterable)
-        return self.ufunc.reduce(data_and_iterable, axis=self.axis)
 
 class SumReduce(BaseReduce):
     ufunc = np.add

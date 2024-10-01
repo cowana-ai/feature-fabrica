@@ -13,13 +13,14 @@ import feature_fabrica.transform.registry as registry
 BASIC_MATH_OPERATORS = {
     '+': {'precedence': 1, 'transformation': 'SumReduce'},
     '-': {'precedence': 1, 'transformation': 'SubtractReduce'},
+    ',': {'precedence': 1, 'transformation': 'ListAggregation'},
     '*': {'precedence': 2, 'transformation': 'MultiplyReduce'},
     '/': {'precedence': 2, 'transformation': 'DivideReduce'},
 }
 OPEN_PARENTHESIS = "("
 CLOSE_PARENTHESIS = ")"
 FUNCTION_PATTERN = r'\.(\w+)\((.*)\)'
-TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[()+\-*/]')
+TOKEN_PATTERN = re.compile(r'\d+\.\d+|\d+|\b\w+\b|\.\w+\([^\)]*\)|[,()+\-*/]')
 
 def is_operator(token: str) -> bool:
     """Check if the token is a mathematical operator."""

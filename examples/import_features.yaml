@@ -40,3 +40,10 @@ feature_e_upper_lower_original:
   dependencies: ["feature_e"]
   transformation:
     _target_: ().import(features=['feature_e:upper', 'feature_e:lower', 'feature_e']).concat(expects_data=True, axis=0)
+
+feature_e_upper_lowerl:
+  description: "Value of feature E concatenated with upper, lower and original"
+  data_type: "str_"
+  dependencies: [feature_e_upper, feature_e_lower]
+  transformation:
+    _target_: (feature_e_upper, feature_e_lower).concat(expects_data=True, axis=0)
