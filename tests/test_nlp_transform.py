@@ -1,7 +1,10 @@
+import unittest
+
 import nltk
 import numpy as np
-from feature_fabrica.transform.NLP import (BagOfWords, TFIDF, Stemming, NGrams, Lemmatization)
-import unittest
+
+from feature_fabrica.transform.NLP import (TFIDF, BagOfWords, Lemmatization,
+                                           NGrams, Stemming)
 
 
 class TestNPLTransformations(unittest.TestCase):

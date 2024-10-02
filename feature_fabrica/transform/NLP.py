@@ -1,15 +1,16 @@
 # ngrams.py
-import numpy as np
+
 import nltk
-from nltk.util import ngrams
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-from nltk.corpus import wordnet
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import numpy as np
 from beartype import beartype
+from nltk.corpus import wordnet
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.util import ngrams
 from omegaconf import ListConfig
-from typing import Tuple
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+
 from feature_fabrica.transform.base import Transformation
-from feature_fabrica.transform.utils import StrArray, StrValue, NumericArray
+from feature_fabrica.transform.utils import NumericArray, StrArray, StrValue
 
 nltk.download('averaged_perceptron_tagger_eng')
 nltk.download('wordnet')
@@ -96,7 +97,7 @@ class TFIDF(Transformation):
 class BagOfWords(Transformation):
     _name_ = 'BagOfWords'
     @beartype
-    def __init__(self, max_features: int, ngram_range: Tuple[int, int] | ListConfig):
+    def __init__(self, max_features: int, ngram_range: tuple[int, int] | ListConfig):
         super().__init__()
         self.max_features = max_features
 
