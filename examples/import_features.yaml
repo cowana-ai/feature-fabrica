@@ -2,6 +2,13 @@ defaults:
   - _self_
   - basic_features
 
+feature_z:
+  description: "Value of feature E uppercased"
+  data_type: "float32"
+  dependencies: ["feature_d"]
+  transformation:
+    _target_: feature_d:scale + 2
+
 feature_e_upper_then_lower:
   description: "Value of feature E uppercased"
   data_type: "str_"
@@ -10,9 +17,9 @@ feature_e_upper_then_lower:
     import:
       _target_: (feature_e:upper).lower()
 
-feature_e_upper_lower_original:
+feature_e_upper_lower:
   description: "Value of feature E concatenated with upper, lower and original"
   data_type: "str_"
   dependencies: ["feature_e"]
   transformation:
-    _target_: (feature_e:upper, feature_e:lower, feature_e).concat(expects_data=True, axis=0)
+    _target_: (feature_e:upper, feature_e:lower).concat(expects_data=True, axis=0)

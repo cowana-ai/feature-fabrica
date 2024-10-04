@@ -45,13 +45,13 @@ class Transformation(ABC):
                 stack: list[tuple[Any, Any, Any]] = [(self, attr_name, attr_value)]
                 while stack:
                     cur_obj, cur_attr, cur_value = stack.pop()
-                    if not OmegaConf.is_list(cur_obj) and not OmegaConf.is_dict(cur_obj):
+                    if not (OmegaConf.is_list(cur_obj)  or isinstance(cur_obj, list)) and not (OmegaConf.is_dict(cur_obj)  or isinstance(cur_obj, dict)):
                         key = cur_obj.__class__.__name__ + '.' + cur_attr
                         memo[key] = 1
 
                     # If cur_value is str and in features -> resolved immediately
                     if isinstance(cur_value, str):
-                        if ":" in cur_value and False:
+                        if ":" in cur_value:
                             dep_feature_name, transform_stage = cur_value.split(":")
                             if dep_feature_name not in feature_dependencies:
                                 raise ValueError()
@@ -72,19 +72,19 @@ class Transformation(ABC):
                         continue
 
                     # If cur_value is Iterable -> iterate recursively
-                    elif OmegaConf.is_list(cur_value):
+                    elif OmegaConf.is_list(cur_value) or isinstance(cur_value, list):
                         for idx, item in enumerate(cur_value):
                             stack.append((cur_value, idx, item))
                         continue
 
                     # If cur_value is Mapping -> iterate over key-value pairs
-                    elif OmegaConf.is_dict(cur_value):
+                    elif OmegaConf.is_dict(cur_value) or isinstance(cur_value, dict):
                         for key, val in cur_value.items():
                             stack.append((cur_value, key, val))
                         continue
                     # Resolve here
                     # Set resolved values appropriately
-                    if OmegaConf.is_list(cur_obj) or OmegaConf.is_dict(cur_obj):
+                    if (OmegaConf.is_list(cur_obj) or isinstance(cur_obj, list)) or (OmegaConf.is_dict(cur_obj) or isinstance(cur_obj, dict)):
                         cur_obj[cur_attr] = cur_value
                     else:
                         setattr(cur_obj, cur_attr, cur_value)
