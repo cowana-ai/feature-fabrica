@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any
 from easydict import EasyDict as edict
 from omegaconf import OmegaConf
 
+from feature_fabrica._internal.instantiate.expressions.utils import \
+    is_valid_promise_value
 from feature_fabrica.models import PromiseValue
 from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.transform.registry import TransformationRegistry
@@ -51,10 +53,10 @@ class Transformation(ABC):
 
                     # If cur_value is str and in features -> resolved immediately
                     if isinstance(cur_value, str):
-                        if ":" in cur_value:
+                        if is_valid_promise_value(cur_value):
                             dep_feature_name, transform_stage = cur_value.split(":")
                             if dep_feature_name not in feature_dependencies:
-                                raise ValueError()
+                                raise RuntimeError(f"Could not identify feature = {dep_feature_name}, make sure it's in feature dependencies!")
                             cur_value = promise_manager.get_promise_value(base_name=dep_feature_name, suffix=transform_stage)
                         elif cur_value in feature_dependencies:
                             cur_value = feature_dependencies[cur_value].feature_value
