@@ -35,7 +35,7 @@ class ConcatenateReduce(Transformation):
         elif expects_data and not self.iterable:
             self.execute = self.with_data  # type: ignore[method-assign]
         elif expects_data and self.iterable:
-            self.execute = self.with_data_and_iterable # type: ignore[method-assign]
+            raise ValueError("expect_data and iterable can't be set at the same time!")
 
     @beartype
     def default(self) -> StrArray:
@@ -47,12 +47,6 @@ class ConcatenateReduce(Transformation):
             return np.apply_along_axis(lambda x: reduce(np.char.add, x), axis=self.axis, arr=data)
         else:
             return np.array([reduce(np.char.add, arr) for arr in data], dtype=str)
-
-    @beartype
-    def with_data_and_iterable(self, data: StrArray) -> StrArray:
-        # TODO: make the order configurable?
-        iterable_with_data = [data] + self.iterable # type: ignore[operator]
-        return reduce(np.char.add, iterable_with_data)
 
 class Strip(Transformation):
     _name_ = "strip"

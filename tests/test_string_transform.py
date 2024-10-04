@@ -34,11 +34,6 @@ class TestStringTransformations(unittest.TestCase):
         expected = np.array(['hello there!', 'goodbye now'])
         assert_array_equal(result, expected)
 
-        transform = ConcatenateReduce(iterable=[array2, array3], expects_data=True)
-        result = transform.execute(array1)
-        expected = np.array(['hello there!', 'goodbye now'])
-        assert_array_equal(result, expected)
-
         stacked = np.stack([array1, array2, array3], axis=1)
         transform = ConcatenateReduce(expects_data=True)
         result = transform.execute(stacked)
