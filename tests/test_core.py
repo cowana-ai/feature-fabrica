@@ -68,11 +68,9 @@ class TestFeatureSet(unittest.TestCase):
             np.array(data["feature_a"]) + np.array(data["feature_b"]) * 2
         )
         expected_feature_f = np.array(["orange"])
-        expected_feature_e_original = np.array(["Orange", "Apple"])
-        expected_feature_e_lower = np.array(["orange", "apple"])
-        expected_feature_e_upper = np.array(["ORANGE", "APPLE"])
-        expected_feature_e = np.array([[0, 1], [1, 0]], dtype=np.int32)
-        expected_feature_e_upper_lower_original = np.array(["ORANGEorangeOrange", "APPLEappleApple"])
+        expected_feature_e_upper_then_lower = np.array(["orange", "apple"])
+
+        expected_feature_e_upper_lower = np.array(["ORANGEorange", "APPLEapple"])
 
         # Assert feature c
         self.assertIsInstance(results["feature_c"], np.ndarray)
@@ -87,12 +85,8 @@ class TestFeatureSet(unittest.TestCase):
         np.testing.assert_array_equal(results["feature_f"], expected_feature_f)
 
         # Assert feature_e's
-        np.testing.assert_array_equal(results["feature_e_original"], expected_feature_e_original)
-        np.testing.assert_array_equal(results["feature_e_lower"], expected_feature_e_lower)
-        np.testing.assert_array_equal(results["feature_e_upper"], expected_feature_e_upper)
-        np.testing.assert_array_equal(results["feature_e"], expected_feature_e)
-        np.testing.assert_array_equal(results["feature_e"], results["feature_e_one_hot"])
-        np.testing.assert_array_equal(results["feature_e_upper_lower_original"], expected_feature_e_upper_lower_original)
+        np.testing.assert_array_equal(results["feature_e_upper_then_lower"], expected_feature_e_upper_then_lower)
+        np.testing.assert_array_equal(results["feature_e_upper_lower"], expected_feature_e_upper_lower)
         # Assert FeatureValue
         np.testing.assert_array_equal(
             feature_manager.features.feature_c.feature_value._get_value(), expected_feature_c
