@@ -86,7 +86,6 @@ class Feature:
 
     def _finalize_feature(self):
         self.computed = True
-        self.promised = False
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
