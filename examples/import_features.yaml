@@ -2,41 +2,24 @@ defaults:
   - _self_
   - basic_features
 
-feature_e_original:
-  description: "Original value of feature E"
-  data_type: "str_"
-  dependencies: ["feature_e"]
+feature_z:
+  description: "Value of feature E uppercased"
+  data_type: "float32"
+  dependencies: ["feature_d"]
   transformation:
-    import:
-      _target_: ().import(feature='feature_e')
+    _target_: feature_d:scale + 2
 
-feature_e_lower:
-  description: "Value of feature E before one hot encoding"
-  data_type: "str_"
-  dependencies: ["feature_e"]
-  transformation:
-    import:
-      _target_: ().import(feature='feature_e', transform_stage='lower')
-
-feature_e_upper:
+feature_e_upper_then_lower:
   description: "Value of feature E uppercased"
   data_type: "str_"
   dependencies: ["feature_e"]
   transformation:
     import:
-      _target_: ().import(feature='feature_e', transform_stage='upper')
+      _target_: (feature_e:upper).lower()
 
-feature_e_one_hot:
-  description: "Value of feature E One Hot Encoded"
-  data_type: "int32"
-  dependencies: ["feature_e"]
-  transformation:
-    import:
-      _target_: ().import(feature='feature_e', transform_stage='one_hot')
-
-feature_e_upper_lower_original:
+feature_e_upper_lower:
   description: "Value of feature E concatenated with upper, lower and original"
   data_type: "str_"
   dependencies: ["feature_e"]
   transformation:
-    _target_: ().import(features=['feature_e:upper', 'feature_e:lower', 'feature_e']).concat(expects_data=True, axis=0)
+    _target_: (feature_e:upper, feature_e:lower).concat(axis=0)

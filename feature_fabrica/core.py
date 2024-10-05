@@ -41,7 +41,6 @@ class Feature:
         self.computed = False
         self.promised: bool = False
 
-
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         compile_all_transformations(self.transformation, self.name, dependencies)
         self.promised = PROMISE_MANAGER.is_promised(self.name)
@@ -137,7 +136,7 @@ class FeatureManager:
         self,
         config_path: str,
         config_name: str,
-        parallel_execution: bool = True,
+        parallel_execution: bool = False,
         log_transformation_chain: bool = True,
         max_workers: int = 4,
     ):
@@ -216,9 +215,10 @@ class FeatureManager:
                 (f_name, dependencies_count[f_name]) for f_name in feature.dependencies
             ]
             if 0 not in [x[1] for x in cur_feature_depends]:
-                dependencies_count[feature.name] = sum(
+                dependencies_count[feature.name] = max(
                     [x[1] for x in cur_feature_depends]
-                )
+                ) + 1
+                visited[feature.name] = 1
             else:
                 # Handle unresolved dependencies using a stack
                 stack = [
@@ -251,15 +251,14 @@ class FeatureManager:
                                 stack.append(dep_name)
                     else:
                         # All dependencies resolved, update count
-                        dependencies_count[f_node_name] = sum(
+                        dependencies_count[f_node_name] = max(
                             [x[1] for x in node_feature_depends]
-                        )
+                        ) + 1
 
                 # Finally, update the current feature's dependency count
-                dependencies_count[feature.name] = sum(
+                dependencies_count[feature.name] = max(
                     [dependencies_count[f_name] for f_name in feature.dependencies]
-                )
-
+                ) + 1
         verify_dependencies(dependencies_count)
         for f_name, level in dependencies_count.items():
             self.queue[level].append(self.features[f_name])
