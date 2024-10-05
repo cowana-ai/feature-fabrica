@@ -20,16 +20,6 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([5, 6, 7])
         assert_array_almost_equal(result, expected)
 
-        transform = SumReduce(expects_data=True)
-        result = transform.execute(np.array([1, 2, 3]))
-        expected = np.array([6])
-        assert_array_almost_equal(result, expected)
-
-        transform = SumReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
-        result = transform.execute(np.array([1]))
-        expected = np.array([6, 7, 8])
-        assert_array_almost_equal(result, expected)
-
 
     def test_multiply_reduce(self):
         data = [np.array([1, 2, 3]), 2]
@@ -38,32 +28,12 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([2, 4, 6])
         assert_array_almost_equal(result, expected)
 
-        transform = MultiplyReduce(expects_data=True)
-        result = transform.execute(np.array([1, 2, 3]))
-        expected = np.array([6])
-        assert_array_almost_equal(result, expected)
-
-        transform = MultiplyReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
-        result = transform.execute(np.array([1]))
-        expected = np.array([4, 8, 12])
-        assert_array_almost_equal(result, expected)
-
 
     def test_subtract_reduce(self):
         data = [np.array([1, 2, 3]), 2]
         transform = SubtractReduce(data)
         result = transform.execute()
         expected = np.array([-1, 0, 1])
-        assert_array_almost_equal(result, expected)
-
-        transform = SubtractReduce(expects_data=True)
-        result = transform.execute(np.array([1, 2, 3]))
-        expected = np.array([-4])
-        assert_array_almost_equal(result, expected)
-
-        transform = SubtractReduce(iterable=[np.array([1, 2, 3]), 4], expects_data=True)
-        result = transform.execute(np.array([1]))
-        expected = np.array([-4, -5, -6])
         assert_array_almost_equal(result, expected)
 
     def test_divide_transform_with_numerator(self):

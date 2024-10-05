@@ -12,12 +12,10 @@ from feature_fabrica._internal.compute import (compile_all_transformations,
                                                compute_all_transformations)
 from feature_fabrica.models import (FeatureSpec, PromiseValue, THead, TNode,
                                     get_execution_config)
-from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.utils import get_logger, instantiate, verify_dependencies
 from feature_fabrica.yaml_parser import load_yaml
 
 logger = get_logger()
-PROMISE_MANAGER = get_promise_manager()
 # Dynamically create a new @slowmobeartype decorator enabling "full fat"
 # O(n) type-checking.
 # Type-check all items of the passed list. Do this only when you pretend
@@ -39,12 +37,9 @@ class Feature:
         self.transformation_chain_head = THead()
         self.transformation_ptr = self.transformation_chain_head
         self.computed = False
-        self.promised: bool = False
-
 
     def compile(self, dependencies: dict[str, "Feature"] | None = None) -> None:
         compile_all_transformations(self.transformation, self.name, dependencies)
-        self.promised = PROMISE_MANAGER.is_promised(self.name)
         return
 
     @logger.catch(reraise=True)
@@ -91,8 +86,6 @@ class Feature:
 
     def _finalize_feature(self):
         self.computed = True
-        PROMISE_MANAGER.delete_all_related_keys(self.name)
-        self.promised = False
 
     def update_transformation_chain(self, transformation_name: str, result_dict: edict):
         """Update the transformation chain with the results of the latest transformation.
@@ -137,7 +130,7 @@ class FeatureManager:
         self,
         config_path: str,
         config_name: str,
-        parallel_execution: bool = True,
+        parallel_execution: bool = False,
         log_transformation_chain: bool = True,
         max_workers: int = 4,
     ):
@@ -216,9 +209,10 @@ class FeatureManager:
                 (f_name, dependencies_count[f_name]) for f_name in feature.dependencies
             ]
             if 0 not in [x[1] for x in cur_feature_depends]:
-                dependencies_count[feature.name] = sum(
+                dependencies_count[feature.name] = max(
                     [x[1] for x in cur_feature_depends]
-                )
+                ) + 1
+                visited[feature.name] = 1
             else:
                 # Handle unresolved dependencies using a stack
                 stack = [
@@ -251,15 +245,14 @@ class FeatureManager:
                                 stack.append(dep_name)
                     else:
                         # All dependencies resolved, update count
-                        dependencies_count[f_node_name] = sum(
+                        dependencies_count[f_node_name] = max(
                             [x[1] for x in node_feature_depends]
-                        )
+                        ) + 1
 
                 # Finally, update the current feature's dependency count
-                dependencies_count[feature.name] = sum(
+                dependencies_count[feature.name] = max(
                     [dependencies_count[f_name] for f_name in feature.dependencies]
-                )
-
+                ) + 1
         verify_dependencies(dependencies_count)
         for f_name, level in dependencies_count.items():
             self.queue[level].append(self.features[f_name])
@@ -293,8 +286,6 @@ class FeatureManager:
                     compile_feature(feature=feature)
 
     def compute_single_feature(self, feature: Feature, value: np.ndarray | None = None):
-        if feature.promised:
-            PROMISE_MANAGER.pass_data(data=value, base_name=feature.name)
         if value is not None:
             result = feature(value=value)
         else:

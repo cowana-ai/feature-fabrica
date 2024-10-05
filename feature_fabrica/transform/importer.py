@@ -6,7 +6,6 @@ import numpy as np
 from beartype import beartype
 from omegaconf import DictConfig, ListConfig
 
-from feature_fabrica.promise_manager import get_promise_manager
 from feature_fabrica.transform.base import Transformation
 from feature_fabrica.transform.utils import AnyArray
 
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 class FeatureImporter(Transformation):
     _name_ = "import"
     @beartype
-    def __init__(self, features: ListConfig[str | DictConfig[str, str]] | None = None, feature: str | None = None, transform_stage: str | None = None):
+    def __init__(self, iterable: ListConfig[str | DictConfig[str, str]] | None = None, feature: str | None = None):
         """
         Parameters
         ----------
@@ -29,31 +28,28 @@ class FeatureImporter(Transformation):
         """
         super().__init__()
         features_to_import = []
-        if not (features or feature):
+        if not (iterable or feature):
             raise ValueError("features or feature should be set.")
         # Deprecate the 'feature' argument
         if feature is not None:
-            features_to_import.append((feature, transform_stage))
+            features_to_import.append(feature)
         else:
             # If features is a list, extract feature names and associated stages
-            for feature in features: # type: ignore[union-attr]
+            for feature in iterable: # type: ignore[union-attr]
                 if isinstance(feature, DictConfig):
-                    features_to_import.append(next(iter(feature.items())))
+                    key, value = next(iter(feature.items()))
+                    features_to_import.append(f"{key}:{value}")
                 else:
-                    features_to_import.append((feature, transform_stage))
-        promise_manager = get_promise_manager()
+                    features_to_import.append(feature)
         # Initialize PromiseValues for each feature
-        self.data: list[PromiseValue] = [
-            promise_manager.get_promise_value(base_name=feature, suffix=transform_stage)
-            for (feature, transform_stage) in features_to_import
-        ]
+        self.iterable: list[PromiseValue | str] = features_to_import
 
     @beartype
     def execute(self) -> AnyArray | list[AnyArray]:
-        if len(self.data) == 1:
-            return self.data[0]._get_value()
+        if len(self.iterable) == 1:
+            return self.iterable[0]._get_value() # type: ignore
         else:
-            imported_list = [promise_value._get_value() for promise_value in self.data]
+            imported_list = [promise_value._get_value() for promise_value in self.iterable] # type: ignore
             # Determine whether we have mixed types and what the final type should be
             has_float = 0
             has_int = 0

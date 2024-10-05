@@ -62,27 +62,32 @@ Features are defined in a YAML file. See examples in `examples/` folder. Here’
 ```yaml
 feature_a:
   description: "Raw feature A"
-  data_type: "float32"
-  group: "training_prod"
+  data_type: "int32"
+  group: "training"
 
 feature_b:
   description: "Raw feature B"
   data_type: "float32"
-  group: "training_experimental"
+  group: "training"
+  transformation:
+    scale_feature:
+      _target_: ().scale(factor=2)
 
 feature_c:
   description: "Derived feature C"
   data_type: "float32"
+  group: "training_experiment"
   dependencies: ["feature_a", "feature_b"]
-  group: "training_prod"
   transformation:
-    sum_fn:
-      _target_: feature_fabrica.transform.SumReduce
-      iterable: ["feature_a", "feature_b"]
-    scale_feature:
-      _target_: feature_fabrica.transform.ScaleFeature
-      factor: 0.5
+    solve:
+      _target_: (feature_a + feature_b) / 2
 
+feature_e:
+  description: "Raw feature E"
+  data_type: "int32"
+  group: "draft"
+  transformation:
+    _target_: ().upper().lower().one_hot(categories=['apple', 'orange'])
 ```
 
 ### **Creating and Using Transformations**
@@ -90,22 +95,23 @@ feature_c:
 You can define custom transformations by subclassing the Transformation class:
 
 ```python
-from typing import Union
-import numpy as np
-from beartype import beartype
-from numpy.typing import NDArray
 from feature_fabrica.transform import Transformation
-from feature_fabrica.transform.utils import NumericArray, NumericValue
 
 
-class ScaleFeature(Transformation):
-    def __init__(self, factor: float):
-        super().__init__()
-        self.factor = factor
+class MyCustomTransform(Transformation):
+    _name_ = "my_custom_transform"
 
-    @beartype
-    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
-        return np.multiply(data, self.factor)
+    def execute(self, data):
+        return data * 2
+```
+
+```yaml
+feature_a:
+  description: "Raw feature A"
+  data_type: "int32"
+  group: "training"
+  transformation:
+    _target_: ().my_custom_transform()
 ```
 
 ### **Compiling and Executing Features**
