@@ -13,18 +13,16 @@ from feature_fabrica.transform.utils import (
 class BaseReduce(Transformation):
     ufunc = None
     @beartype
-    def __init__(self, iterable: Iterable | None = None, expects_data: bool = False, axis: int = 0):
+    def __init__(self, iterable: Iterable | None = None, axis: int = 0):
         super().__init__()
 
-        assert iterable or expects_data, "Either expect_data or iterable should be set!"
         self.iterable = iterable
         self.axis = axis
-        if not expects_data and self.iterable:
+        if self.iterable:
             self.execute = self.default  # type: ignore
-        elif expects_data and not self.iterable:
+        else:
             self.execute = self.with_data  # type: ignore[method-assign]
-        elif expects_data and self.iterable:
-            raise ValueError("expect_data and iterable can't be set at the same time!")
+
     @beartype
     def default(self) -> NumericArray | NumericValue:
         if self.ufunc is None:

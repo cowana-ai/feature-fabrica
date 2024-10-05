@@ -156,7 +156,7 @@ def _process_function_token(token: str, stack: list, count_individual_steps: int
 
     _hydrated_fn_class = {
         "_target_": fn_class,
-        **kwargs
+        **kwargs,
     }
 
     a = stack.pop() if stack else None

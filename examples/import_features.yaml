@@ -22,4 +22,4 @@ feature_e_upper_lower:
   data_type: "str_"
   dependencies: ["feature_e"]
   transformation:
-    _target_: (feature_e:upper, feature_e:lower).concat(expects_data=True, axis=0)
+    _target_: (feature_e:upper, feature_e:lower).concat(axis=0)
