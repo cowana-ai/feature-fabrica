@@ -68,33 +68,27 @@ class DivideTransform(Transformation):
     ):
         super().__init__()
         assert (
-            numerator or denominator
+            (numerator or denominator) and not (numerator and denominator)
         ), "You have to pass either numerator or denominator for computation!"
 
         self.numerator = numerator
         self.denominator = denominator
 
-        if numerator and denominator:
-            self.execute = self.default  # type: ignore[method-assign]
-        elif numerator:
-            self.execute = self.with_numerator  # type: ignore[method-assign]
+    @beartype
+    def execute(self, data: NumericArray | NumericValue) -> NumericArray | NumericValue:
+        if  self.numerator:
+            numerator = self.numerator
+            return self.compute(numerator, data)
         else:
-            self.execute = self.with_denominator  # type: ignore[method-assign]
+            denominator = self.denominator
+            return self.compute(data, denominator)
 
-    @beartype
-    def with_numerator(
-        self, data: NumericArray | NumericValue
-    ) -> NumericArray | NumericValue:
-        return self.numerator / data  # type: ignore[operator]
 
-    @beartype
-    def with_denominator(
-        self, data: NumericArray | NumericValue
+    @staticmethod
+    def compute(
+        numerator: NumericArray | NumericValue, denominator: NumericArray | NumericValue
     ) -> NumericArray | NumericValue:
-        return data / self.denominator  # type: ignore[operator]
-    @beartype
-    def default(self) -> NumericArray | NumericValue:
-        return self.numerator / self.denominator  # type: ignore[operator]
+        return numerator / denominator  # type: ignore[operator]
 
 
 class ScaleFeature(Transformation):

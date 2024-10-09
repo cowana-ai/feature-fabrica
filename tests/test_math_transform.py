@@ -55,12 +55,6 @@ class TestTransformations(unittest.TestCase):
         expected = np.array([2, 5, 10])
         assert_array_almost_equal(result, expected)
 
-    def test_divide_transform_default(self):
-        transform = DivideTransform(numerator=100, denominator=20)
-        result = transform.execute()
-        expected = 5
-        self.assertEqual(result, expected)
-
     def test_scale_feature(self):
         transform = ScaleFeature(factor=2.5)
         data = np.array([1, 2, 3])
