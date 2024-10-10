@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pre-commit
+          pip install pre-commit=='3.8.0'
           pre-commit install
 
       - name: Run pre-commit checks

@@ -1,0 +1,82 @@
+# examples/basic_features.yaml
+feature_a:
+  description: "Raw feature A"
+  data_type: "int32"
+  group: "training"
+
+feature_b:
+  description: "Raw feature B"
+  data_type: "float32"
+  group: "training"
+
+feature_c:
+  description: "Derived feature C"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_a", "feature_b"]
+  transformation:
+    solve:
+      _target_: (feature_a + feature_b) / 2
+
+feature_d:
+  description: "Derived feature D"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_a", "feature_b", "feature_c"]
+  transformation:
+    solve:
+      _target_: (feature_a + feature_b) / 2 * feature_c
+
+feature_f:
+  description: "Derived feature F"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_a", "feature_c"]
+  transformation:
+    solve:
+      _target_: (feature_a).log() + feature_c
+
+feature_e:
+  description: "Derived feature E"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_a", "feature_c"]
+  transformation:
+    solve:
+      _target_: (feature_a).scale(factor=24) + 100 / 1312
+
+feature_g:
+  description: "Derived feature G"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_b", "feature_a"]
+  transformation:
+    solve:
+      _target_: (feature_a).exp() + feature_b
+
+feature_h:
+  description: "Derived feature H"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_b", "feature_a"]
+  transformation:
+    solve:
+      _target_: (feature_a).sqrt() + feature_b
+
+feature_i:
+  description: "Derived feature I"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_b", "feature_a"]
+  transformation:
+    solve:
+      _target_: (feature_a).pow(power=2) + feature_b
+
+feature_j:
+  description: "Derived feature J"
+  data_type: "float32"
+  group: "training"
+  dependencies: ["feature_b", "feature_a"]
+  transformation:
+    solve:
+      _target_: (feature_a).abs() + feature_b
