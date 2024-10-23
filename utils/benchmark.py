@@ -46,6 +46,7 @@ def main(config_name, batch_size, total_samples):
     print(f"Total time spent on batched computation: {total_time:.4f} seconds")
     return final_results
 
+
 if __name__ == "__main__":
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Batched feature computation.")
