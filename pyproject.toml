@@ -16,6 +16,7 @@ beartype = "^0.18.5"
 scikit-learn = "^1.5.1"
 jaxtyping = "^0.2.34"
 hydra-core = "^1.3.2"
+nltk = "^3.9.1"
 
 [build-system]
 requires = ["poetry-core"]
